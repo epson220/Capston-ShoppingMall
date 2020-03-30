@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 화면</title>
+</head>
+<body>
+    <div>
+        <div>
+            <h1>로그인</h1>
+            <form action="/login" method="post">
+                <div>
+                    <label>이메일</label>
+                    <input type="text" name="userid"/>
+                </div>
+                <div>
+                    <label>비밀번호</label>
+                    <input type="password" name="password"/>
+                </div>
+                <input type="submit" value="로그인"/>
+            </form>
+            <hr>
+            <p>계정이 없으세요?<a href="/signup">회원가입하기</a></p>
+            <p><a href="/">홈으로</a>.</p>
+        </div>
+    </div>
+
+</body>
+</html>

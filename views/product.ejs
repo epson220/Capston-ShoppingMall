@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품정보</title>
+</head>
+<body>
+    <% result.forEach(function(val) { %>
+        <div>
+            <% var a = "/uploads/"+val.filename; %>
+            상품이름 : <%= val.productname %>
+            <img src= <%=a%> width="50px">
+            <form action='/basket' method='post'>
+                <input type="hidden" value="<%= val.productid %>" name="productid">
+                <input type="hidden" value="<%= user_num %>" name="user_num">
+                <input type="submit" value="장바구니담기">
+            </form>
+        </div>
+    <% }) %>
+</body>
+</html>
