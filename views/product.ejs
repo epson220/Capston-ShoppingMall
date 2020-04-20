@@ -1,22 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>상품정보</title>
 </head>
+
 <body>
+    <table>
+        <tr>
+            <td>
+                <form action="/mycart" method="post">
+                    <input type="hidden" value="<%= uid %>" name="uid">
+                    <input type="submit" value="내장바구니">
+                </form>
+            </td>
+            <td>
+                <form action="/products" method="post">
+                    <input type="hidden" value="<%= uid %>" name="uid">
+                    <input type="submit" value="상품목록">
+                </form>
+            </td>
+            <td>
+                <form action="/signup" method="get">
+                    <input type="submit" value="회원가입">
+                </form>
+            </td>
+            <td>
+                <form action="/logout" method="get">
+                    <input type="submit" value="로그아웃">
+                </form>
+            </td>
+        </tr>
+    </table>
     <% result.forEach(function(val) { %>
+    <div>
+        <% var a = val.img; %>
+        상품이름 : <%= val.pname %><br>
+        상품가격 : <%= val.price %><br>
+        <img src=<%=a%> width="100px"><br>
         <div>
-            <% var a = "/uploads/"+val.filename; %>
-            상품이름 : <%= val.productname %>
-            <img src= <%=a%> width="50px">
             <form action='/basket' method='post'>
-                <input type="hidden" value="<%= val.productid %>" name="productid">
-                <input type="hidden" value="<%= user_num %>" name="user_num">
+                <input type="hidden" value="<%= val.id %>" name="productid">
+                <input type="hidden" value="<%= uid %>" name="uid">
+                <input type="hidden" value="<%= val.pname %>" name="productname">
+                <input type="hidden" value="<%= val.img %>" name="img">
+                <input type="number" name="cnt">
                 <input type="submit" value="장바구니담기">
             </form>
         </div>
-    <% }) %>
+        <hr>
+        <div>
+            <h4>리뷰작성</h4>
+            <form action='/review' enctype="multipart/form-data" method="post">
+                <input type="hidden" value="<%= uid %>" name="uid">
+                <input type="hidden" value="<%= val.id %>" name="productid">
+
+                <input type="file" name="photo">
+                <textarea cols="15" rows="5" name="content"></textarea>
+                <input type="submit" value="리뷰제출">
+            </form>
+        </div>
+        <hr>
+    </div>
+    <% }); %>
+
+    <% if(rows) { %>
+    <% rows.forEach(function(val) { %>
+    <% var a = val.img; %>
+    <div>
+        리뷰이미지 : <img src=<%=a%> width="30px"><br>
+        리뷰작성자 : <%= val.user_email %><br>
+        리뷰내용 : <%= val.content %><br>
+        <% if(comments) { %>
+        <% comments.forEach(function(c) { %>
+            답변자 : <%= c.writer %>
+            답변내용 : <%= c.content %>
+        <% }); %>
+        <% } %>
+        <form action="/comment" method="post">
+            <label>답변내용</label>
+            <input type="text" name="content">
+            <label>작성자</label>
+            <input type="text" name="writer">
+            <input type="hidden" value="<%= uid %>" name="uid">
+            <input type="hidden" value="<%= val.id %>" name="reviewId">
+            <input type="hidden" value="<%= val.productId %>" name="productid">
+            <input type="submit" value="답변작성">
+        </form>
+        <!-- <form action="/openReview" method="post">
+            <input type="hidden" value="<%= val.id %>" name="reviewId">
+            <input type="submit" value="리뷰상세보기">
+        </form> -->
+        <hr>
+    </div>
+    <br><br>
+    <% }); %>
+    <% } %>
 </body>
+
 </html>

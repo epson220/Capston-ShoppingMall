@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 장바구니 조회</title>
+</head>
+<body>
+    <table>
+        <tr>
+            <td>
+                <form action="/products" method="post">
+                    <input type="hidden" value="<%= uid %>" name="uid">
+                    <input type="submit" value="상품목록">
+                </form>
+            </td>
+            <td>
+                <form action="/signup" method="get">
+                    <input type="submit" value="회원가입">
+                </form>
+            </td>
+            <td>
+                <form action="/logout" method="get">
+                    <input type="submit" value="로그아웃">
+                </form>
+            </td>
+        </tr>
+    </table>
+    <% var i=1; %>
+    <% data.forEach(function(val) { %>
+        <div>
+            <% var a = val.img; %>
+            <h3><%= i%></h3>
+            상품이름 : <%= val.pname %><br>
+            <img src="<%=a%>" width="50px"><br>
+            담은갯수 : <%= val.cnt %><br>
+            <% i++; %>
+            <form action='/product' method='post'>
+                <input type="hidden" value="<%= val.productId %>" name="productid">
+                <input type="hidden" value="<%= uid %>" name="uid">
+                <input type="submit" value="상품정보보기">
+            </form>
+        </div>
+        <br><br>
+    <% }) %>
+</body>
+</html>

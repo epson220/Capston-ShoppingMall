@@ -4,15 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>상품등록페이지</title>
+    <script language="javascript">
+        function ResizeImage(){
+            var filesToUpload = document.getElementById('imageFile').files;
+            var file = filesToUpload[0];
+            var img = document.createElement("img");
+            var reader = new FileReader();
+            reader.onload = function(e){
+                img.src = e.target.result;
+                var canvas = document.createElement("canvas");
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0);
+                canvas.width = 100;
+                canvas.height = 100;
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, 100, 100);
+                var dataurl = canvas.toDataURL("image/png");
+                document.getElementById("output").src = dataurl;
+            }
+            reader.readAsDataURL(file);
+        }
+    </script>
 </head>
 <body>
     <form action="/addproduct" enctype="multipart/form-data" method="post">
+        <div>
+            <label>상품출처</label>
+            <input type="text" name="seller">
+        </div>
         <div>
             <label>상품이름</label>
             <input type="text" name="productname">
         </div>
         <div>
+            <label>상품가격</label>
+            <input type="number" name="price">
+        </div>
+        <div>
             <label>상품사진</label>
+            <input type="file" name="photo">
+        </div>
+        <div>
+            <label>상품재고량</label>
+            <input type="number" name="cnt">
+        </div>
+        <div>
+            <label>카테고리id</label>
+            <input type="number" name="categoryId">
+        </div>
+        <div>
+            <label>상품상세설명</label>
+            <textarea cols="15" rows="3" name="description"></textarea>
+        </div>
+        <div>
+            <label>생성날짜</label>
+            <input type="date" name="createdAt">
+        </div>
+        <div>
+            <label>누끼이미지</label>
+            <input id="imageFile" type="file">
+            <input type="button" value="resize image" onclick="ResizeImage()"/>
+            <img src="" id="output">
             <input type="file" name="photo">
         </div>
         <input type="submit" value="저장">

@@ -6,7 +6,14 @@
     <title>상품등록결과</title>
 </head>
 <body>
-    상품이름 : <%= data.productname %><br>
-    상품사진 : <img src=<%= data.filename%> width="200px">
+    상품이름 : <%= data.pname %><br>
+    상품사진 : <img src="<%= data.img %>" width="200px"><br>
+    상품출처 : <%= data.seller %><br>
+    상품가격 : <%= data.price %><br>
+    상품재고 : <%= data.cnt %><br>
+    카테고리 : <%= data.categoryId %><br>
+    상세설명 : <%= data.description %><br>
+    등록날짜 : <%= data.createdAt %><br>
+    리사이즈 : <img src="<%= data.resized %>" >
 </body>
 </html>

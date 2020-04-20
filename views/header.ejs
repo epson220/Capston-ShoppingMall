@@ -1,0 +1,21 @@
+<table>
+    <tr>
+        <td>
+            <form action="/mycart" method="post">
+                <input type="hidden" value="<%= user_num %>" name="user_num">
+                <input type="submit" value="장바구니"> 
+            </form>
+        </td>
+        <td>
+            <form action="/products" method="post">
+                <input type="hidden" value="<%= user_num %>" name="user_num">
+                <input type="submit" value="상품목록">
+            </form>
+        </td>
+        <td>
+            <form action="/signup" method="get">
+                <input type="submit" value="회원가입">
+            </form>
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상의조회</title>
+</head>
+<body>
+    <table>
+        <tr>
+            <td>
+                <form action="/mycart" method="post">
+                    <input type="hidden" value="<%= uid %>" name="uid">
+                    <input type="submit" value="내장바구니"> 
+                </form>
+            </td>
+            <td>
+                <form action="/signup" method="get">
+                    <input type="submit" value="회원가입">
+                </form>
+            </td>
+            <td>
+                <form action="/logout" method="get">
+                    <input type="submit" value="로그아웃">
+                </form>
+            </td>
+            <td>
+                <form action="/bottom" method="post">
+                    <input type="hidden" value="<%= uid %>" name="uid">
+                    <input type="submit" value="하의">
+                </form>
+            </td>
+            <td>
+                <form action="/products" method="post">
+                    <input type="hidden" value="<%= uid %>" name="uid">
+                    <input type="submit" value="전체상품목록">
+                </form>
+            </td>
+            <td>
+                <form action="/searchTop" method="post">
+                    <input type="hidden" value="<%= uid%>" name="uid">
+                    <input type="text" name="keyword">
+                    <input type="submit" value="상품검색">
+                </form>
+            </td>
+        </tr>
+    </table>
+    <% rows.forEach(function(val) { %>
+        <div>
+            <% var a = val.img; %>
+            상품이름 : <%= val.pname %>
+            <img src= <%=a%> width="50px">
+            <form action='/product' method='post'>
+                <input type="hidden" value="<%= val.id %>" name="productid">
+                <input type="hidden" value="<%= uid %>" name="uid">
+                <input type="submit" value="상품정보보기">
+            </form>
+        </div>
+    <% }) %>
+</body>
+</html>
