@@ -422,6 +422,7 @@ router.route('/product').post(function (req, res) {
                     if (rows) { //해당상품에대한 리뷰가 있는 경우
                         console.log('reviews : ');
                         console.dir(rows);
+                        
                         res.render('product.ejs', { result: selected_product, uid: uid, rows: rows });
                     } else { //해당상품에대한 리뷰가 없는 경우
                         console.log('리뷰없음');
@@ -507,6 +508,7 @@ router.route('/comment').post(function (req, res, next) {
     var content = req.body.content;
     var reviewId = req.body.reviewId;
     var uid = req.body.uid;
+    var productId = req.body.productid;
 
     pool.getConnection(function (err, conn) {
         var data = { writer: writer, content: content, reviewId: reviewId };
@@ -542,13 +544,58 @@ router.route('/comment').post(function (req, res, next) {
                             console.log('exec5 : ' + exec5.sql);
                             if (!comments) {
                                 console.log('답글없음');
-                                res.render('product.ejs', { result: selected_product, uid: uid, rows:rows });
+                                res.render('comments.ejs', { result: selected_product, uid: uid, rows:rows });
                             }
                             
                             if (comments) {
                                 console.log('comments : ');
                                 console.dir(comments);
-                                res.render('product.ejs', { result: selected_product, uid: uid, rows: rows, comments:comments });
+                                res.render('comments.ejs', { result: selected_product, uid: uid, rows: rows, comments:comments });
+                            }
+                        });
+                    }
+                });
+            }
+        );
+    });
+});
+
+router.route('/openReview').post(function(req, res){
+    var reviewId = req.body.reviewId;
+    var uid = req.body.uid;
+    var productId = req.body.productid;
+    console.log('open review : '+reviewId+', '+uid+', '+productId);
+
+    pool.getConnection(function (err, conn) {
+
+        var exec3 = conn.query("select * from products where id = ?", productId,
+            function (err, row) {
+                var selected_product = row;
+                console.log('selected_product : ');
+                console.dir(row);
+                console.log('실행sql :' + exec3.sql);
+                var exec4 = conn.query("select * from reviews where productId =?", productId, function (err, rows) {
+                    console.log('exec4 : ' + exec4.sql);
+                    conn.release();
+                    if (!rows) {
+                        console.log('리뷰없음');
+                        res.render('product.ejs', { result: selected_product, uid: uid });
+                    }
+                    if (rows) { //해당상품에대한 리뷰가 있는 경우
+                        console.log('리뷰있음');
+                        console.log('reviews : ');
+                        console.dir(rows);
+                        var exec5 = conn.query('select * from comments where reviewId=?', reviewId, function (err, comments) {
+                            console.log('exec5 : ' + exec5.sql);
+                            if (!comments) {
+                                console.log('답글없음');
+                                res.render('comments.ejs', { result: selected_product, uid: uid, rows:rows });
+                            }
+                            
+                            if (comments) {
+                                console.log('comments : ');
+                                console.dir(comments);
+                                res.render('comments.ejs', { result: selected_product, uid: uid, rows: rows, comments:comments });
                             }
                         });
                     }
