@@ -12,13 +12,11 @@
         <tr>
             <td>
                 <form action="/mycart" method="post">
-                    <input type="hidden" value="<%= uid %>" name="uid">
                     <input type="submit" value="내장바구니">
                 </form>
             </td>
             <td>
                 <form action="/products" method="post">
-                    <input type="hidden" value="<%= uid %>" name="uid">
                     <input type="submit" value="상품목록">
                 </form>
             </td>
@@ -43,7 +41,6 @@
         <div>
             <form action='/basket' method='post'>
                 <input type="hidden" value="<%= val.id %>" name="productid">
-                <input type="hidden" value="<%= uid %>" name="uid">
                 <input type="hidden" value="<%= val.pname %>" name="productname">
                 <input type="hidden" value="<%= val.img %>" name="img">
                 <input type="number" name="cnt">
@@ -54,7 +51,6 @@
         <div>
             <h4>리뷰작성</h4>
             <form action='/review' enctype="multipart/form-data" method="post">
-                <input type="hidden" value="<%= uid %>" name="uid">
                 <input type="hidden" value="<%= val.id %>" name="productid">
 
                 <input type="file" name="photo">
@@ -79,14 +75,12 @@
             <input type="text" name="content">
             <label>작성자</label>
             <input type="text" name="writer">
-            <input type="hidden" value="<%= uid %>" name="uid">
             <input type="hidden" value="<%= val.id %>" name="reviewId">
             <input type="hidden" value="<%= val.productId %>" name="productid">
             <input type="submit" value="답변작성">
         </form>
         <form action="/openReview" method="post">
             <input type="hidden" value="<%= val.id %>" name="reviewId">
-            <input type="hidden" value="<%= uid %>" name="uid">
             <input type="hidden" value="<%= val.productId %>" name="productid">
             <input type="submit" value="리뷰상세보기">
         </form>

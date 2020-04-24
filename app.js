@@ -12,6 +12,9 @@ var expressSession = require('express-session');
 var mysql = require('mysql');
 var multer = require('multer');
 //var fs = require('fs');
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
+var flash = require('connect-flash');
 
 var pool = mysql.createPool({
     connectionLimit: 10,
@@ -22,14 +25,6 @@ var pool = mysql.createPool({
     database: 'capstone',
     debug: false
 });
-
-// var pool = mysql.createPool({
-//     host: 'localhost',
-//     user: 'root',
-//     password: '1234',
-//     database: 'test',
-//     debug: false
-// });
 
 var app = express();
 
@@ -47,6 +42,84 @@ app.use(expressSession({
     resave: true,
     saveUninitialized: true
 }));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash());
+
+passport.use('local-login', new LocalStrategy({
+    usernameField: 'email',
+    passwordField: 'password',
+    passReqToCallback: true
+}, function (req, email, password, done) {
+    console.log('passport의 local-login 호출됨 :' + email + ', ' + password);
+    pool.getConnection(function (err, conn) {
+        // if (err) {
+        //     console.log('커넥션err1 : ' + err);
+        //     if (conn) {
+        //         conn.release();
+        //     }
+        // }
+        var exec = conn.query("select * from users where email=? and password=?", [email, password], function (err, user) {
+            if(err){
+                console.log('로그인에러 : ' + err);
+            }
+            console.log('exec : ' + exec.sql);
+            console.log('user : ');
+            console.dir(user);
+            conn.release();
+            if (!user) {
+                console.log('계정, 비번 일치 x');
+                return done(null, false, req.flash('loginMessage', '로그인실패'));
+            }
+            console.log('일치하는 계정 확인');
+            return done(null, user);
+        });
+    });
+}
+));
+
+passport.use('local-signup', new LocalStrategy({
+    usernameField: 'email',
+    passwordField: 'password',
+    passReqToCallback: true
+}, function (req, email, password, done) {
+    console.log('passport의 local-signup호출됨 : ' + email + ', ' + password);
+    pool.getConnection(function (err, conn) {
+        // if (err) {
+        //     console.log('커넥션err2 : ' + err);
+        //     if (conn) {
+        //         conn.release();
+        //     }
+        // }
+        var data = { email: email, password: password, name: name };
+        console.log('data : '); console.dir(data);
+        var exec = conn.query("insert into users set ?", data, function (err, result) {
+            console.log('회원가입 err : ' + err);
+            console.log('exec : ' + exec.sql);
+            console.log('회원가입결과 : ');
+            console.dir(result);
+            conn.release();
+            if (result) {
+                console.log('회원가입성공');
+                return done(null, user);
+            } else {
+                return done(null, false, req.flash('signupMessage', '회원가입실패'));
+            }
+        });
+    });
+}));
+
+passport.serializeUser(function (user, done) {
+    console.log('serializeUser() 호출됨.');
+    console.dir(user);
+    done(null, user);
+});
+
+passport.deserializeUser(function (user, done) {
+    console.log('deserializeUser() 호출됨');
+    console.dir(user);
+    done(null, user);
+});
 
 var router = express.Router();
 
@@ -69,7 +142,21 @@ router.route('/addproduct').get(function (req, res) {
 router.route('/logout').get(function (req, res) {
     res.render('home.ejs');
 });
+
+router.route('/login').post(passport.authenticate('local-login', {
+    successRedirect: '/products',
+    failureRedirect: '/login',
+    failureFlash: true
+}));
+
+router.route('/signup').post(passport.authenticate('local-signup ', {
+    successRedirect: '/products',
+    failureRedirect: '/signup',
+    failureFlash: true
+}));
+
 //로그인 인증 처리
+/*
 router.route('/login').post(function (req, res) {
 
     var userid = req.body.userid || req.query.userid;
@@ -111,7 +198,11 @@ router.route('/login').post(function (req, res) {
         });
     });
 });
+*/
+
+
 //회원가입 처리
+/*
 router.route('/signup').post(function (req, res) {
 
     var userid = req.body.userid || req.query.userid;
@@ -143,12 +234,12 @@ router.route('/signup').post(function (req, res) {
         });
     });
 });
+*/
 
 //상품목록조회
-router.route('/products').post(function (req, res) {
-    var uid = req.body.uid;
-
-    console.log('사용자번호:' + uid);
+router.route('/products').get(function (req, res) {
+    console.log('req.user : ');
+    console.log(req.user);
 
     pool.getConnection(function (err, conn) {
         var exec = conn.query("select * from products", function (err, list) {
@@ -156,7 +247,7 @@ router.route('/products').post(function (req, res) {
             conn.release();
             if (list.length > 0) {
                 console.dir(list);
-                res.render('products.ejs', { list: list, uid: uid });
+                res.render('products.ejs', { list: list });
             }
         });
     });
@@ -231,11 +322,11 @@ router.post('/addproduct', upload.array('photo', 5), function (req, res, next) {
 
 //장바구니담기
 router.route('/basket').post(function (req, res) {
-    //var uid = sessionStorage.getItem(uid);
+    
     var pid = req.body.productid;
     var productname = req.body.productname;
     var img = req.body.img;
-    var uid = req.body.uid;
+    var uid = req.user[0].id;
     var cnt = req.body.cnt;
     console.log('장바구니에 담을 상품이름 :' + productname);
     console.log('장바구니에 담을 상품이미지 : ' + img);
@@ -284,7 +375,7 @@ router.route('/basket').post(function (req, res) {
 
 //장바구니 조회
 router.route('/mycart').post(function (req, res) {
-    var uid = req.body.uid;
+    var uid = req.user[0].id;
     pool.getConnection(function (err, conn) {
         var exec = conn.query("select * from carts where userId = ?", uid, function (err, rows) {
             console.log(exec.sql);
@@ -304,7 +395,7 @@ router.route('/mycart').post(function (req, res) {
 //검색
 router.route('/search').post(function (req, res) {
     var keyword = req.body.keyword;
-    var uid = req.body.uid;
+    var uid = req.user[0].id;
     console.log('검색키워드, uid : ' + keyword + ', ' + uid);
     pool.getConnection(function (err, conn) {
         var exec = conn.query('select * from products where pname like ?', ["%" + keyword + "%"], function (err, list) {
@@ -324,7 +415,7 @@ router.route('/search').post(function (req, res) {
 
 //상의조회
 router.route('/top').post(function (req, res) {
-    var uid = req.body.uid;
+    var uid = req.user[0].id;
     console.log('uid : ' + uid);
     pool.getConnection(function (err, conn) {
         var exec = conn.query('select * from products where categoryId=1', function (err, rows) {
@@ -344,7 +435,7 @@ router.route('/top').post(function (req, res) {
 
 //하의조회
 router.route('/bottom').post(function (req, res) {
-    var uid = req.body.uid;
+    var uid = req.user[0].id;
     console.log('uid : ' + uid);
     pool.getConnection(function (err, conn) {
         var exec = conn.query('select * from products where categoryId=2', function (err, rows) {
@@ -364,7 +455,7 @@ router.route('/bottom').post(function (req, res) {
 
 //상의검색
 router.route('/searchTop').post(function (req, res) {
-    var uid = req.body.uid;
+    var uid = req.user[0].id;
     var keyword = req.body.keyword;
     console.log('uid : ' + uid);
     pool.getConnection(function (err, conn) {
@@ -385,7 +476,7 @@ router.route('/searchTop').post(function (req, res) {
 
 //하의검색
 router.route('/searchBottom').post(function (req, res) {
-    var uid = req.body.uid;
+    var uid = req.user[0].id;
     var keyword = req.body.keyword;
     console.log('uid : ' + uid);
     pool.getConnection(function (err, conn) {
@@ -406,7 +497,7 @@ router.route('/searchBottom').post(function (req, res) {
 //상품정보보기
 router.route('/product').post(function (req, res) {
     var productid = req.body.productid;
-    var uid = req.body.uid;
+    var uid = req.user[0].id;
     console.log('선택한 상품 :' + productid);
     console.log('현재 유저 정보 :' + uid);
     pool.getConnection(function (err, conn) {
@@ -422,7 +513,7 @@ router.route('/product').post(function (req, res) {
                     if (rows) { //해당상품에대한 리뷰가 있는 경우
                         console.log('reviews : ');
                         console.dir(rows);
-                        
+
                         res.render('product.ejs', { result: selected_product, uid: uid, rows: rows });
                     } else { //해당상품에대한 리뷰가 없는 경우
                         console.log('리뷰없음');
@@ -439,7 +530,7 @@ router.post('/review', upload.array('photo', 3), function (req, res, next) {
 
     var productId = req.body.productid;
     var content = req.body.content;
-    var uid = req.body.uid;
+    var uid = req.user[0].id;
     console.log('file :');
     console.dir(req.files);
 
@@ -507,7 +598,7 @@ router.route('/comment').post(function (req, res, next) {
     var writer = req.body.writer;
     var content = req.body.content;
     var reviewId = req.body.reviewId;
-    var uid = req.body.uid;
+    var uid = req.user[0].id;
     var productId = req.body.productid;
 
     pool.getConnection(function (err, conn) {
@@ -544,13 +635,13 @@ router.route('/comment').post(function (req, res, next) {
                             console.log('exec5 : ' + exec5.sql);
                             if (!comments) {
                                 console.log('답글없음');
-                                res.render('comments.ejs', { result: selected_product, uid: uid, rows:rows });
+                                res.render('comments.ejs', { result: selected_product, uid: uid, rows: rows });
                             }
-                            
+
                             if (comments) {
                                 console.log('comments : ');
                                 console.dir(comments);
-                                res.render('comments.ejs', { result: selected_product, uid: uid, rows: rows, comments:comments });
+                                res.render('comments.ejs', { result: selected_product, uid: uid, rows: rows, comments: comments });
                             }
                         });
                     }
@@ -560,11 +651,11 @@ router.route('/comment').post(function (req, res, next) {
     });
 });
 
-router.route('/openReview').post(function(req, res){
+router.route('/openReview').post(function (req, res) {
     var reviewId = req.body.reviewId;
-    var uid = req.body.uid;
+    var uid = req.user[0].id;
     var productId = req.body.productid;
-    console.log('open review : '+reviewId+', '+uid+', '+productId);
+    console.log('open review : ' + reviewId + ', ' + uid + ', ' + productId);
 
     pool.getConnection(function (err, conn) {
 
@@ -589,13 +680,13 @@ router.route('/openReview').post(function(req, res){
                             console.log('exec5 : ' + exec5.sql);
                             if (!comments) {
                                 console.log('답글없음');
-                                res.render('comments.ejs', { result: selected_product, uid: uid, rows:rows });
+                                res.render('comments.ejs', { result: selected_product, uid: uid, rows: rows });
                             }
-                            
+
                             if (comments) {
                                 console.log('comments : ');
                                 console.dir(comments);
-                                res.render('comments.ejs', { result: selected_product, uid: uid, rows: rows, comments:comments });
+                                res.render('comments.ejs', { result: selected_product, uid: uid, rows: rows, comments: comments });
                             }
                         });
                     }

@@ -10,7 +10,6 @@
         <tr>
             <td>
                 <form action="/mycart" method="post">
-                    <input type="hidden" value="<%= uid %>" name="uid">
                     <input type="submit" value="내 장바구니"> 
                 </form>
             </td>
@@ -26,26 +25,22 @@
             </td>
             <td>
                 <form action="/top" method="post">
-                    <input type="hidden" value="<%= uid %>" name="uid">
                     <input type="submit" value="상의">
                 </form>
             </td>
             <td>
                 <form action="/bottom" method="post">
-                    <input type="hidden" value="<%= uid %>" name="uid">
                     <input type="submit" value="하의">
                 </form>
             </td>
             <td>
                 <form action="/search" method="post">
                     <input type="text" name="keyword">
-                    <input type="hidden" value="<%= uid %>" name="uid">
                     <input type="submit" value="검색">
                 </form>
             </td>
             <td>
                 <form action="/products" method="post">
-                    <input type="hidden" value="<%= uid %>" name="uid">
                     <input type="submit" value="전체상품목록">
                 </form>
             </td>
@@ -58,7 +53,6 @@
             <img src= <%=a%> width="50px">
             <form action='/product' method='post'>
                 <input type="hidden" value="<%= val.id %>" name="productid">
-                <input type="hidden" value="<%= uid %>" name="uid">
                 <input type="submit" value="상품정보보기">
             </form>
         </div>
