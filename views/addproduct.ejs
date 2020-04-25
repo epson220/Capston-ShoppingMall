@@ -29,10 +29,6 @@
 <body>
     <form action="/addproduct" enctype="multipart/form-data" method="post">
         <div>
-            <label>상품출처</label>
-            <input type="text" name="seller">
-        </div>
-        <div>
             <label>상품이름</label>
             <input type="text" name="productname">
         </div>
@@ -41,7 +37,7 @@
             <input type="number" name="price">
         </div>
         <div>
-            <label>상품사진</label>
+            <label>상품썸네일</label>
             <input type="file" name="photo">
         </div>
         <div>
@@ -61,12 +57,40 @@
             <input type="date" name="createdAt">
         </div>
         <div>
-            <label>누끼이미지</label>
+            <label>누끼이미지1</label>
             <input id="imageFile" type="file">
             <input type="button" value="resize image" onclick="ResizeImage()"/>
             <img src="" id="output">
             <input type="file" name="photo">
         </div>
+        <div>
+            <label>누끼이미지2</label>
+            <input id="imageFile" type="file">
+            <input type="button" value="resize image" onclick="ResizeImage()"/>
+            <img src="" id="output">
+            <input type="file" name="photo">
+        </div>
+        <div>
+            <label>누끼이미지3</label>
+            <input id="imageFile" type="file">
+            <input type="button" value="resize image" onclick="ResizeImage()"/>
+            <img src="" id="output">
+            <input type="file" name="photo">
+        </div>       
+
+        색상선택<br>
+        <label><input type="checkbox" name="color" value="blue"> 파랑</label>
+        <label><input type="checkbox" name="color" value="red"> 빨강</label>
+        <label><input type="checkbox" name="color" value="yellow"> 노랑</label>
+        <label><input type="checkbox" name="color" value="red"> 블랙</label>
+        <label><input type="checkbox" name="color" value="white">화이트</label>
+        <br>
+        사이즈선택<br>
+        <label><input type="checkbox" name="size" value="M"> M</label>
+        <label><input type="checkbox" name="size" value="L"> L</label>
+        <label><input type="checkbox" name="size" value="XL"> XL</label>
+        <br>
+
         <input type="submit" value="저장">
     </form>
 </body>

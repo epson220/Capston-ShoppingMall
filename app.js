@@ -270,54 +270,99 @@ var upload = multer({
     })
 });
 //상품 등록 하기 
-router.post('/addproduct', upload.array('photo', 5), function (req, res, next) {
+router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
+
     var productname = req.body.productname;
-    var seller = req.body.seller;
+    //var seller = req.user[0].name;
     var price = req.body.price;
-    var cnt = req.body.cnt;
-    var description = req.body.description;
     var categoryId = req.body.categoryId;
     var createdAt = req.body.createdAt;
-    console.log('요청 파라미터 : ' + productname + ', ' + seller + ', ' + price + ', ' + cnt + ', ' + description + ', ' + categoryId + ', ' + createdAt);
+    var gender = req.body.gender;
+    console.log('요청 파라미터 : ' + productname + ', ' + price + ', ' + categoryId + ', ' + createdAt);
 
-    console.log('file :');
-    console.dir(req.files);
-    var filename = req.files[0].location;
-    console.log('filename1 : ' + filename);
-    var filename2 = req.files[1].location;
-    console.log('filename2 : ' + filename2);
+    // console.log('file :');
+    // console.dir(req.files);
+    // console.log('파일길이 : '+req.files.length);
+    // var filename = req.files[0].location; //대표이미지(섬네일)
+    // console.log('filename1 : ' + filename);
+    // var filename2 = req.files[1].location; //description이미지
+    // console.log('filename2 : ' + filename2);
+    
+    var colors = req.body.color;
+    var size = req.body.size;
+    var cnt = req.body.cnt;
+    var rowLen = colors.length * size.length;
 
+    console.log('colors : ');
+    console.dir(colors);
+
+    console.log('size : ');
+    console.dir(size);
+
+    var resized = new Array();
+    var j=0;
+    for(var i=2;i<req.files.length;i++){
+        resized[j] = req.files[i].location;
+        console.log('resized'+i+':');
+        console.log(resized[i]);
+        j++; 
+    }
+    
     pool.getConnection(function (err, conn) {
         var pid;
         var data;
+        var Infodata = new Array();
+
         var exec1 = conn.query('select * from products', function (err, rows) {
             if (err) {
                 console.log('err1 : ' + err);
+                conn.release();
             }
             console.log(exec1.sql);
             console.dir(rows);
             if (rows.length > 0) {
                 pid = rows.length + 1;
                 console.log('pid : ' + pid);
-                data = { id: pid, seller: seller, pname: productname, price: price, cnt: cnt, description: description, categoryId: categoryId, img: filename, createdAt: createdAt, resized: filename2 };
+                data = { id: pid, seller: seller, pname: productname, price: price, description: filename2, categoryId: categoryId, img: filename, createdAt: createdAt, gender:gender };
             } else {
                 pid = 1;
                 console.log('pid1:' + pid);
-                data = { id: pid, seller: seller, pname: productname, price: price, cnt: cnt, description: description, categoryId: categoryId, img: filename, createdAt: createdAt, resized: filename2 };
+                data = { id: pid, seller: seller, pname: productname, price: price, description: filename2, categoryId: categoryId, img: filename, createdAt: createdAt, gender:gender };
             }
             var exec2 = conn.query('insert into products set ?', data, function (err, result) {
                 if (err) {
                     console.log('err2 : ' + err);
+                    conn.release();
                 }
                 console.log(exec2.sql);
-                conn.release();
                 if (result) {
                     console.log('상품등록결과:' + result);
-                    res.render('addresult.ejs', { data: data });
+                    //res.render('addresult.ejs', { data: data });
                 }
             });
+            
+            var i = 0;
+            for(var c=0; c<colors.length; c++){
+                for(var s=0; s<size.length; s++){
+                    Infodata[i] = {productId : pid, color : colors[c], size : size[s], resizedImg : resized[c]};
+                    i++;
+                }
+            }
+            for(var j=0; j<i; j++){
+                var exec3 = conn.query('insert into productInfo set ?', Infodata[j], function(err, result){
+                    if(err){
+                        console.log('err3 : '+err);
+                    }
+                    console.log(exe3.sql);
+                    if(result){
+                        console.log('상품등록결과2:' + result);
+                        res.render('addresult.ejs', { data: data});
+                    }
+                });
+            }
         });
-    });
+
+    }); 
 });
 
 //장바구니담기
