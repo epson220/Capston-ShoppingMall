@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>상품등록페이지</title>
-    <script language="javascript">
+    <!-- <script language="javascript">
         function ResizeImage(){
             var filesToUpload = document.getElementById('imageFile').files;
             var file = filesToUpload[0];
@@ -24,7 +24,7 @@
             }
             reader.readAsDataURL(file);
         }
-    </script>
+    </script> -->
 </head>
 <body>
     <form action="/addproduct" enctype="multipart/form-data" method="post">
@@ -45,12 +45,16 @@
             <input type="number" name="cnt">
         </div>
         <div>
-            <label>카테고리id</label>
-            <input type="number" name="categoryId">
+            제품성별선택
+            <select name="categoryId">
+                <option value=1 selected>상의</option>
+                <option value=2>하의</option>
+                <option value=3>모자</option>
+            </select>
         </div>
         <div>
             <label>상품상세설명</label>
-            <textarea cols="15" rows="3" name="description"></textarea>
+            <input type="file" name="photo">
         </div>
         <div>
             <label>생성날짜</label>
@@ -58,26 +62,32 @@
         </div>
         <div>
             <label>누끼이미지1</label>
-            <input id="imageFile" type="file">
+            <!-- <input id="imageFile" type="file">
             <input type="button" value="resize image" onclick="ResizeImage()"/>
-            <img src="" id="output">
+            <img src="" id="output"> -->
             <input type="file" name="photo">
         </div>
         <div>
             <label>누끼이미지2</label>
-            <input id="imageFile" type="file">
+            <!-- <input id="imageFile" type="file">
             <input type="button" value="resize image" onclick="ResizeImage()"/>
-            <img src="" id="output">
+            <img src="" id="output"> -->
             <input type="file" name="photo">
         </div>
-        <div>
+        <!-- <div>
             <label>누끼이미지3</label>
             <input id="imageFile" type="file">
             <input type="button" value="resize image" onclick="ResizeImage()"/>
             <img src="" id="output">
             <input type="file" name="photo">
-        </div>       
-
+        </div>  -->
+        성별선택
+        <select name="gender">
+            <option value="M" selected>남</option>
+            <option value="F">여</option>
+            <option value="U">공용</option>
+        </select>
+        <br>
         색상선택<br>
         <label><input type="checkbox" name="color" value="blue"> 파랑</label>
         <label><input type="checkbox" name="color" value="red"> 빨강</label>
@@ -90,8 +100,8 @@
         <label><input type="checkbox" name="size" value="L"> L</label>
         <label><input type="checkbox" name="size" value="XL"> XL</label>
         <br>
-
-        <input type="submit" value="저장">
+        <br>
+        <input type="submit" value="상품업로드완료">
     </form>
 </body>
 </html>

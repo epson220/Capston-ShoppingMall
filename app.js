@@ -262,9 +262,10 @@ var upload = multer({
         s3: new AWS.S3(),
         bucket: 'swcap02',
         key: function (req, file, cb) {
-            var extension = path.extname(file.originalname);
-            var basename = path.basename(file.originalname, extension);
-            cb(null, 'product/' + basename + '-' + Date.now().toString() + extension);
+            // var extension = path.extname(file.originalname);
+            // var basename = path.basename(file.originalname, extension);
+            // cb(null, 'product/' + basename + '-' + Date.now().toString() + extension);
+            cb(null, `product/${Date.now()}${path.basename(file.originalname)}`);
         },
         acl: 'public-read-write'
     })
@@ -280,18 +281,17 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
     var gender = req.body.gender;
     console.log('요청 파라미터 : ' + productname + ', ' + price + ', ' + categoryId + ', ' + createdAt);
 
-    // console.log('file :');
-    // console.dir(req.files);
-    // console.log('파일길이 : '+req.files.length);
-    // var filename = req.files[0].location; //대표이미지(섬네일)
-    // console.log('filename1 : ' + filename);
-    // var filename2 = req.files[1].location; //description이미지
-    // console.log('filename2 : ' + filename2);
+    console.log('file :');
+    console.dir(req.files);
+    console.log('파일길이 : '+req.files.length);
+    var filename = req.files[0].location; //대표이미지(섬네일)
+    console.log('filename1 : ' + filename);
+    var filename2 = req.files[1].location; //description이미지
+    console.log('filename2 : ' + filename2);
     
     var colors = req.body.color;
     var size = req.body.size;
     var cnt = req.body.cnt;
-    var rowLen = colors.length * size.length;
 
     console.log('colors : ');
     console.dir(colors);
@@ -302,9 +302,11 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
     var resized = new Array();
     var j=0;
     for(var i=2;i<req.files.length;i++){
-        resized[j] = req.files[i].location;
-        console.log('resized'+i+':');
-        console.log(resized[i]);
+        var originalUrl = req.files[i].location;
+        var url = originalUrl.replace(/\/product\//,'/thumb/');
+        resized[j] = url;
+        console.log('resized'+j+':');
+        console.log(resized[j]);
         j++; 
     }
     
@@ -319,15 +321,15 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
                 conn.release();
             }
             console.log(exec1.sql);
-            console.dir(rows);
+            //console.dir(rows);
             if (rows.length > 0) {
                 pid = rows.length + 1;
                 console.log('pid : ' + pid);
-                data = { id: pid, seller: seller, pname: productname, price: price, description: filename2, categoryId: categoryId, img: filename, createdAt: createdAt, gender:gender };
+                data = { id: pid, pname: productname, price: price, description: filename2, categoryId: categoryId, img: filename, createdAt: createdAt, gender:gender };
             } else {
                 pid = 1;
                 console.log('pid1:' + pid);
-                data = { id: pid, seller: seller, pname: productname, price: price, description: filename2, categoryId: categoryId, img: filename, createdAt: createdAt, gender:gender };
+                data = { id: pid, pname: productname, price: price, description: filename2, categoryId: categoryId, img: filename, createdAt: createdAt, gender:gender };
             }
             var exec2 = conn.query('insert into products set ?', data, function (err, result) {
                 if (err) {
@@ -336,7 +338,8 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
                 }
                 console.log(exec2.sql);
                 if (result) {
-                    console.log('상품등록결과:' + result);
+                    console.log('상품등록결과:');
+                    console.dir(result);
                     //res.render('addresult.ejs', { data: data });
                 }
             });
@@ -344,7 +347,9 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
             var i = 0;
             for(var c=0; c<colors.length; c++){
                 for(var s=0; s<size.length; s++){
-                    Infodata[i] = {productId : pid, color : colors[c], size : size[s], resizedImg : resized[c]};
+                    Infodata[i] = {productId : pid, color : colors[c], size : size[s], resizedImg : resized[c], cnt:cnt};
+                    console.log('infodata'+i+' : ');
+                    console.dir(Infodata[i]);
                     i++;
                 }
             }
@@ -353,15 +358,16 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
                     if(err){
                         console.log('err3 : '+err);
                     }
-                    console.log(exe3.sql);
+                    console.log(exec3.sql);
                     if(result){
-                        console.log('상품등록결과2:' + result);
-                        res.render('addresult.ejs', { data: data});
+                        console.log('상품등록결과2:');
+                        console.dir(result);
                     }
                 });
             }
+            conn.release();
+            res.render('addresult.ejs', { data: data});
         });
-
     }); 
 });
 
