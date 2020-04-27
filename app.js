@@ -28,6 +28,12 @@ var pool = mysql.createPool({
 
 var app = express();
 
+app.all('/*', function(req, res, next) { //이미지 권한문제의 핵심 나중에 서버쪽 사람들한테 이걸 붙이라고 해라!!!!!!!!!!!!!//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    next();
+  });
+
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 console.log('뷰 엔진이 ejs로 설정되었습니다.');
@@ -247,7 +253,8 @@ router.route('/products').get(function (req, res) {
             conn.release();
             if (list.length > 0) {
                 console.dir(list);
-                res.render('products.ejs', { list: list });
+                res.send(list);
+                //res.render('products.ejs', { list: list });
             }
         });
     });
@@ -367,6 +374,7 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
             }
             conn.release();
             res.render('addresult.ejs', { data: data});
+            
         });
     }); 
 });
@@ -548,7 +556,7 @@ router.route('/searchBottom').post(function (req, res) {
 //상품정보보기
 router.route('/product').post(function (req, res) {
     var productid = req.body.productid;
-    var uid = req.user[0].id;
+    
     console.log('선택한 상품 :' + productid);
     console.log('현재 유저 정보 :' + uid);
     pool.getConnection(function (err, conn) {
@@ -748,6 +756,7 @@ router.route('/openReview').post(function (req, res) {
 });
 
 app.use('/', router);
+
 
 http.createServer(app).listen(app.get('port'), function () {
     console.log('서버가 시작되었습니다. 포트: ' + app.get('port'));
