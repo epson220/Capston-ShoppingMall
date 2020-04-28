@@ -28,11 +28,11 @@ var pool = mysql.createPool({
 
 var app = express();
 
-app.all('/*', function(req, res, next) { //이미지 권한문제의 핵심 나중에 서버쪽 사람들한테 이걸 붙이라고 해라!!!!!!!!!!!!!//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+app.all('/*', function (req, res, next) { //이미지 권한문제의 핵심 나중에 서버쪽 사람들한테 이걸 붙이라고 해라!!!!!!!!!!!!!//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "X-Requested-With");
     next();
-  });
+});
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
@@ -66,7 +66,7 @@ passport.use('local-login', new LocalStrategy({
         //     }
         // }
         var exec = conn.query("select * from users where email=? and password=?", [email, password], function (err, user) {
-            if(err){
+            if (err) {
                 console.log('로그인에러 : ' + err);
             }
             console.log('exec : ' + exec.sql);
@@ -141,8 +141,12 @@ router.route('/signup').get(function (req, res) {
     res.render('signup.ejs');
 });
 
+// router.route('/addproduct').get(function (req, res) {
+//     res.render('addproduct.ejs');
+// });
+
 router.route('/addproduct').get(function (req, res) {
-    res.render('addproduct.ejs');
+    res.render('addproduct2.ejs');
 });
 
 router.route('/logout').get(function (req, res) {
@@ -278,110 +282,254 @@ var upload = multer({
     })
 });
 //상품 등록 하기 
+// router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
+
+//     var productname = req.body.productname;
+//     //var seller = req.user[0].name;
+//     var price = req.body.price;
+//     var categoryId = req.body.categoryId;
+//     var createdAt = req.body.createdAt;
+//     var gender = req.body.gender;
+//     console.log('요청 파라미터 : ' + productname + ', ' + price + ', ' + categoryId + ', ' + createdAt);
+
+//     console.log('file :');
+//     console.dir(req.files);
+//     console.log('파일길이 : '+req.files.length);
+//     var filename = req.files[0].location; //대표이미지(섬네일)
+//     console.log('filename1 : ' + filename);
+//     var filename2 = req.files[1].location; //description이미지
+//     console.log('filename2 : ' + filename2);
+
+//     var colors = req.body.color;
+//     var size = req.body.size;
+//     var cnt = req.body.cnt;
+
+//     console.log('colors : ');
+//     console.dir(colors);
+
+//     console.log('size : ');
+//     console.dir(size);
+
+//     var resized = new Array();
+//     var j=0;
+//     for(var i=2;i<req.files.length;i++){
+//         var originalUrl = req.files[i].location;
+//         var url = originalUrl.replace(/\/product\//,'/thumb/');
+//         resized[j] = url;
+//         console.log('resized'+j+':');
+//         console.log(resized[j]);
+//         j++; 
+//     }
+
+//     pool.getConnection(function (err, conn) {
+//         var pid;
+//         var data;
+//         var Infodata = new Array();
+
+//         var exec1 = conn.query('select * from products', function (err, rows) {
+//             if (err) {
+//                 console.log('err1 : ' + err);
+//                 conn.release();
+//             }
+//             console.log(exec1.sql);
+//             //console.dir(rows);
+//             if (rows.length > 0) {
+//                 pid = rows.length + 1;
+//                 console.log('pid : ' + pid);
+//                 data = { id: pid, pname: productname, price: price, description: filename2, categoryId: categoryId, img: filename, createdAt: createdAt, gender:gender };
+//             } else {
+//                 pid = 1;
+//                 console.log('pid1:' + pid);
+//                 data = { id: pid, pname: productname, price: price, description: filename2, categoryId: categoryId, img: filename, createdAt: createdAt, gender:gender };
+//             }
+//             var exec2 = conn.query('insert into products set ?', data, function (err, result) {
+//                 if (err) {
+//                     console.log('err2 : ' + err);
+//                     conn.release();
+//                 }
+//                 console.log(exec2.sql);
+//                 if (result) {
+//                     console.log('상품등록결과:');
+//                     console.dir(result);
+//                     //res.render('addresult.ejs', { data: data });
+//                 }
+//             });
+
+//             var i = 0;
+//             for(var c=0; c<colors.length; c++){
+//                 for(var s=0; s<size.length; s++){
+//                     Infodata[i] = {productId : pid, color : colors[c], size : size[s], resizedImg : resized[c], cnt:cnt};
+//                     console.log('infodata'+i+' : ');
+//                     console.dir(Infodata[i]);
+//                     i++;
+//                 }
+//             }
+//             for(var j=0; j<i; j++){
+//                 var exec3 = conn.query('insert into productInfo set ?', Infodata[j], function(err, result){
+//                     if(err){
+//                         console.log('err3 : '+err);
+//                     }
+//                     console.log(exec3.sql);
+//                     if(result){
+//                         console.log('상품등록결과2:');
+//                         console.dir(result);
+//                     }
+//                 });
+//             }
+//             conn.release();
+//             res.render('addresult.ejs', { data: data});
+
+//         });
+//     }); 
+// });
+
+//상품등록하기 버전2
 router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
 
     var productname = req.body.productname;
-    //var seller = req.user[0].name;
     var price = req.body.price;
     var categoryId = req.body.categoryId;
     var createdAt = req.body.createdAt;
     var gender = req.body.gender;
-    console.log('요청 파라미터 : ' + productname + ', ' + price + ', ' + categoryId + ', ' + createdAt);
 
-    console.log('file :');
+    var color = req.body.color;
+    var M = req.body.M;
+    var L = req.body.L;
+    var XL = req.body.XL;
+
+    console.log('color : ');
+    console.log(color);
+
+    console.log('M : ');
+    console.log(M);
+
+    console.log('L : ');
+    console.log(L);
+
+    console.log('XL : ');
+    console.log(XL);
+
+    console.log("files : ");
     console.dir(req.files);
-    console.log('파일길이 : '+req.files.length);
-    var filename = req.files[0].location; //대표이미지(섬네일)
-    console.log('filename1 : ' + filename);
-    var filename2 = req.files[1].location; //description이미지
-    console.log('filename2 : ' + filename2);
-    
-    var colors = req.body.color;
-    var size = req.body.size;
-    var cnt = req.body.cnt;
+    console.log("file 갯수 : " + req.files.length);
+    console.log('대표이미지 : ');
+    console.log(req.files[0].location);
+    console.log('상품설명이미지 : ');
+    console.log(req.files[1].location);
 
-    console.log('colors : ');
-    console.dir(colors);
 
-    console.log('size : ');
-    console.dir(size);
 
-    var resized = new Array();
-    var j=0;
-    for(var i=2;i<req.files.length;i++){
-        var originalUrl = req.files[i].location;
-        var url = originalUrl.replace(/\/product\//,'/thumb/');
-        resized[j] = url;
-        console.log('resized'+j+':');
-        console.log(resized[j]);
-        j++; 
-    }
-    
     pool.getConnection(function (err, conn) {
         var pid;
         var data;
-        var Infodata = new Array();
+        var data2 = new Array();
+        var data3 = new Array();
 
-        var exec1 = conn.query('select * from products', function (err, rows) {
+        if (err) {
+            console.log('디비 연결 에러');
+            conn.release();
+        }
+        data = { pname: productname, price: price, categoryId: categoryId, createdAt: createdAt, gender: gender, img: req.files[0].location, description: req.files[1].location };
+        var exec0 = conn.query('insert into products set ?', data, function (err, result) {
             if (err) {
-                console.log('err1 : ' + err);
+                console.log('err0 : ');
+                console.log(err);
                 conn.release();
             }
-            console.log(exec1.sql);
-            //console.dir(rows);
-            if (rows.length > 0) {
-                pid = rows.length + 1;
+            console.log('exec0 : ' + exec0.sql);
+            if (result) {
+                console.log('products_result : ');
+                console.dir(result);
+            }
+        });
+
+        var exec1 = conn.query('select id from products', function (err, ids) {
+            if (err) {
+                console.log('err1 : ');
+                console.log(err);
+                conn.release();
+            }
+            console.log('exec1 : ' + exec1.sql);
+            console.log('ids : ');
+            console.dir(ids);
+            if (ids.length > 0) {
+                pid = ids.length;
                 console.log('pid : ' + pid);
-                data = { id: pid, pname: productname, price: price, description: filename2, categoryId: categoryId, img: filename, createdAt: createdAt, gender:gender };
             } else {
                 pid = 1;
-                console.log('pid1:' + pid);
-                data = { id: pid, pname: productname, price: price, description: filename2, categoryId: categoryId, img: filename, createdAt: createdAt, gender:gender };
+                console.log('pid : ' + pid);
             }
-            var exec2 = conn.query('insert into products set ?', data, function (err, result) {
-                if (err) {
-                    console.log('err2 : ' + err);
-                    conn.release();
-                }
-                console.log(exec2.sql);
-                if (result) {
-                    console.log('상품등록결과:');
-                    console.dir(result);
-                    //res.render('addresult.ejs', { data: data });
-                }
-            });
-            
-            var i = 0;
-            for(var c=0; c<colors.length; c++){
-                for(var s=0; s<size.length; s++){
-                    Infodata[i] = {productId : pid, color : colors[c], size : size[s], resizedImg : resized[c], cnt:cnt};
-                    console.log('infodata'+i+' : ');
-                    console.dir(Infodata[i]);
-                    i++;
-                }
-            }
-            for(var j=0; j<i; j++){
-                var exec3 = conn.query('insert into productInfo set ?', Infodata[j], function(err, result){
-                    if(err){
-                        console.log('err3 : '+err);
+
+            var k = 0;
+            for (var i = 0; i < color.length; i++) {
+                for (var j = 0; j < 3; j++) {
+                    if (j == 0) {
+                        data2[k] = { productId: pid, color: color[i], size: 'M', cnt: M[i] };
                     }
-                    console.log(exec3.sql);
-                    if(result){
-                        console.log('상품등록결과2:');
+                    if (j == 1) {
+                        data2[k] = { productId: pid, color: color[i], size: 'L', cnt: L[i] };
+                    }
+                    if (j == 2) {
+                        data2[k] = { productId: pid, color: color[i], size: 'XL', cnt: XL[i] };
+                    }
+                    k++;
+                }
+            }
+            console.log('data2 : ');
+            console.log(data2);
+
+            for (var i = 0; i < k; i++) {
+                var exec2 = conn.query("insert into productInfo set ?", data2[i], function (err, result) {
+                    console.log('exec2 : '+exec2.sql);
+                    if (err) {
+                        console.log('err2 : ');
+                        console.dir(err);
+                        conn.release();
+                    }
+                    
+                    if (result) {
+                        console.log('prductInfo_result : ');
                         console.dir(result);
                     }
                 });
             }
-            conn.release();
-            res.render('addresult.ejs', { data: data});
-            
-        });
-    }); 
-});
+
+            var d = 0;
+            for (var i = 0; i < color.length; i++) {
+                data3[d] = { productId: pid, img: req.files[i + 2].location, color: color[i] };
+                d++;
+            }
+            console.log('data3 : ');
+            console.log(data3);
+
+            for (var i = 0; i < d; i++) {
+                var exec3 = conn.query('insert into imgByColors set ?', data3[i], function (err, result) {
+                    console.log('exec3 : ' + exec3.sql);
+                    if (err) {
+                        console.log('err3 : ');
+                        console.dir(err);
+                        conn.release();
+                    }
+                    if (result) {
+                        console.log('imgByColor_result : ');
+                        console.log(result);
+                        //res.writeHead('200', { 'Content-Type': 'text/html;charset=utf8' });
+                        res.end('<h2>상품등록성공</h2>');
+                    }
+                });
+            }
+
+        });//exec1
+
+    });//pool.getConnection
+
+});//route.post
+
+
 
 //장바구니담기
 router.route('/basket').post(function (req, res) {
-    
+
     var pid = req.body.productid;
     var productname = req.body.productname;
     var img = req.body.img;
@@ -556,7 +704,7 @@ router.route('/searchBottom').post(function (req, res) {
 //상품정보보기
 router.route('/product').post(function (req, res) {
     var productid = req.body.productid;
-    
+
     console.log('선택한 상품 :' + productid);
     console.log('현재 유저 정보 :' + uid);
     pool.getConnection(function (err, conn) {

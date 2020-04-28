@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품등록페이지</title>
+</head>
+<body>
+    <form action="/addproduct" enctype="multipart/form-data" method="post">
+        <div>
+            <label>상품이름</label>
+            <input type="text" name="productname">
+        </div>
+        <div>
+            <label>상품가격</label>
+            <input type="number" name="price">
+        </div>
+        <div>
+            <label>상품썸네일</label>
+            <input type="file" name="photo">
+        </div>
+        <div>
+            제품성별선택
+            <select name="categoryId">
+                <option value=1 selected>상의</option>
+                <option value=2>하의</option>
+                <option value=3>모자</option>
+            </select>
+        </div>
+        <div>
+            <label>상품상세설명이미지</label>
+            <input type="file" name="photo">
+        </div>
+        <div>
+            <label>생성날짜</label>
+            <input type="date" name="createdAt">
+        </div>
+        성별선택
+        <select name="gender">
+            <option value="M" selected>남</option>
+            <option value="F">여</option>
+            <option value="U">공용</option>
+        </select>
+        <br>
+        <table>
+            <tr>
+                <td></td><td>M</td><td>L</td><td>XL</td><td>Img</td>
+            </tr>
+            <tr>
+                <td>
+                    <select name="color">
+                        <option value="red">red</option>
+                        <option value="blue">blue</option>
+                        <option value="black">black</option>
+                        <option value="white">white</option>
+                        <option value="gray">gray</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" name="M">
+                </td>
+                <td>
+                    <input type="number" name="L">
+                </td>
+                <td>
+                    <input type="number" name="XL">
+                </td>
+                <td>
+                    <input type="file" name="photo">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <select name="color">
+                        <option value="red">red</option>
+                        <option value="blue">blue</option>
+                        <option value="black">black</option>
+                        <option value="white">white</option>
+                        <option value="gray">gray</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" name="M">
+                </td>
+                <td>
+                    <input type="number" name="L">
+                </td>
+                <td>
+                    <input type="number" name="XL">
+                </td>
+                <td>
+                    <input type="file" name="photo">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <select name="color">
+                        <option value="red">red</option>
+                        <option value="blue">blue</option>
+                        <option value="black">black</option>
+                        <option value="white">white</option>
+                        <option value="gray">gray</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" name="M">
+                </td>
+                <td>
+                    <input type="number" name="L">
+                </td>
+                <td>
+                    <input type="number" name="XL">
+                </td>
+                <td>
+                    <input type="file" name="photo">
+                </td>
+            </tr>
+        </table>
+
+        <br>
+        <input type="submit" value="상품업로드완료">
+    </form>
+</body>
+</html>
