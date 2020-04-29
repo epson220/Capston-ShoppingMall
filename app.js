@@ -253,13 +253,18 @@ router.route('/products').get(function (req, res) {
 
     pool.getConnection(function (err, conn) {
         var exec = conn.query("select * from products", function (err, list) {
-            console.log(exec.sql);
-            conn.release();
-            if (list.length > 0) {
-                console.dir(list);
-                res.send(list);
-                //res.render('products.ejs', { list: list });
-            }
+            var products = list;
+            console.log('exec :' +exec.sql);
+            //conn.release();
+            var exec1 = conn.query("select * from imgByColors", function(err, imgs){
+                console.log('exec1 : '+exec.sql);
+                if (products.length > 0) {
+                    console.dir(products);
+                    res.send({result:products, imgs:imgs});
+                    //res.render('products.ejs', { list: list });
+                }
+            });
+
         });
     });
 });
@@ -525,6 +530,57 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
 
 });//route.post
 
+//툴바에서 장바구니에 담기
+router.route('/toolbarAdd').post(function(req, res){
+    var imgurl = req.body.imgurl; //색상별이미지url
+    var uid = req.user[0].id;
+    pool.getConnection(function(err, conn){
+        if(err){
+            console.log('연결err : '+err);
+            conn.release();
+        }
+        var exec = conn.query('select * from imgByColors where img = ?', [imgurl], function(err, row){
+            var productid;
+            var color;
+            var pname;
+            var thumbnail;
+            console.log('exec : '+exec.sql);
+            if(err){
+                console.log('err : '+err);
+                conn.release();
+            }
+            console.log("row : ");
+            console.dir(row);
+            productid = row[0].pid;
+            color = row[0].color;
+            console.log('productid :'+productid+', '+'color : '+color);
+            
+            var exec1 = conn.query('select * from products where id =?',[productid], function(err, result){
+                if(err){
+                    console.log('err2 : '+err);
+                    conn.release();
+                }
+                console.log('exec1 : '+exec1.sql);
+                console.log('result : ');
+                console.dir(result);
+                pname = result[0].pname;
+                thumbnail = result[0].img;
+                console.log('pname : '+pname+', '+'thumbnail'+thumbnail);
+
+                var data = {pname:pname, cnt:1, userId:uid, productId:productid, img:thumbnail, color:color, size:'M'};
+                var exec2 = conn.query('insert into carts set ?', data, function(err, result2){
+                    if(err){
+                        console.log('err3 : '+err);
+                        conn.release();
+                    }
+                    console.log('exec2 : '+exec2.sql);
+                    console.log('result2 : ');
+                    console.dir(result2);
+                });
+            });
+        });
+    });
+});
 
 
 //장바구니담기
@@ -702,11 +758,11 @@ router.route('/searchBottom').post(function (req, res) {
 });
 
 //상품정보보기
-router.route('/product').post(function (req, res) {
-    var productid = req.body.productid;
-
+router.route('/product/:id').post(function (req, res) {
+    var productid = req.params.id;
+    var uid = req.user[0].id;
     console.log('선택한 상품 :' + productid);
-    console.log('현재 유저 정보 :' + uid);
+    //console.log('현재 유저 정보 :' + uid);
     pool.getConnection(function (err, conn) {
         var exec = conn.query("select * from products where id = ?", productid,
             function (err, row) {
@@ -721,10 +777,12 @@ router.route('/product').post(function (req, res) {
                         console.log('reviews : ');
                         console.dir(rows);
 
-                        res.render('product.ejs', { result: selected_product, uid: uid, rows: rows });
+                        //res.render('product.ejs', { result: selected_product, uid: uid, rows: rows });
+                        res.send({result:selected_product, rows: rows});
                     } else { //해당상품에대한 리뷰가 없는 경우
                         console.log('리뷰없음');
-                        res.render('product.ejs', { result: selected_product, uid: uid });
+                        //res.render('product.ejs', { result: selected_product, uid: uid });
+                        res.send({result:selected_product, rows:[]});
                     }
                 });
             }
