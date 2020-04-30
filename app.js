@@ -255,14 +255,14 @@ router.route('/products').get(function (req, res) {
         var exec = conn.query("select * from products", function (err, list) {
             var array = list.reverse();
             var products = array;
-            console.log('exec :' +exec.sql);
+            console.log('exec :' + exec.sql);
             //conn.release();
-            var exec1 = conn.query("select * from imgByColors", function(err, imgs){
-                console.log('exec1 : '+exec1.sql);
+            var exec1 = conn.query("select * from imgByColors", function (err, imgs) {
+                console.log('exec1 : ' + exec1.sql);
                 conn.release();
                 if (products.length > 0) {
                     console.dir(products);
-                    res.send({result:products, imgs:imgs});
+                    res.send({ result: products, imgs: imgs });
                     //res.render('products.ejs', { list: list });
                 }
             });
@@ -486,13 +486,13 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
 
             for (var i = 0; i < k; i++) {
                 var exec2 = conn.query("insert into productInfo set ?", data2[i], function (err, result) {
-                    console.log('exec2 : '+exec2.sql);
+                    console.log('exec2 : ' + exec2.sql);
                     if (err) {
                         console.log('err2 : ');
                         console.dir(err);
                         conn.release();
                     }
-                    
+
                     if (result) {
                         console.log('prductInfo_result : ');
                         console.dir(result);
@@ -532,49 +532,50 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
 });//route.post
 
 //툴바에서 장바구니에 담기
-router.route('/toolbarAdd').post(function(req, res){
+router.route('/toolbarAdd').post(function (req, res) {
     var imgurl = req.body.imgurl; //색상별이미지url
     var uid = req.user[0].id;
-    pool.getConnection(function(err, conn){
-        if(err){
-            console.log('연결err : '+err);
+    pool.getConnection(function (err, conn) {
+        if (err) {
+            console.log('연결err : ' + err);
             conn.release();
         }
-        var exec = conn.query('select * from imgByColors where img = ?', [imgurl], function(err, row){
+        var exec = conn.query('select * from imgByColors where img = ?', [imgurl], function (err, row) {
             var productid;
             var color;
             var pname;
             var thumbnail;
-            console.log('exec : '+exec.sql);
-            if(err){
-                console.log('err : '+err);
+            console.log('exec : ' + exec.sql);
+            if (err) {
+                console.log('err : ' + err);
                 conn.release();
             }
             console.log("row : ");
             console.dir(row);
             productid = row[0].pid;
             color = row[0].color;
-            console.log('productid :'+productid+', '+'color : '+color);
-            
-            var exec1 = conn.query('select * from products where id =?',[productid], function(err, result){
-                if(err){
-                    console.log('err2 : '+err);
+            console.log('productid :' + productid + ', ' + 'color : ' + color);
+
+            var exec1 = conn.query('select * from products where id =?', [productid], function (err, result) {
+                if (err) {
+                    console.log('err2 : ' + err);
                     conn.release();
                 }
-                console.log('exec1 : '+exec1.sql);
+                console.log('exec1 : ' + exec1.sql);
                 console.log('result : ');
                 console.dir(result);
                 pname = result[0].pname;
                 thumbnail = result[0].img;
-                console.log('pname : '+pname+', '+'thumbnail'+thumbnail);
+                console.log('pname : ' + pname + ', ' + 'thumbnail' + thumbnail);
 
-                var data = {pname:pname, cnt:1, userId:uid, productId:productid, img:thumbnail, color:color};
-                var exec2 = conn.query('insert into carts set ?', data, function(err, result2){
-                    if(err){
-                        console.log('err3 : '+err);
+                var data = { pname: pname, cnt: 1, userId: uid, productId: productid, img: thumbnail, color: color };
+                var exec2 = conn.query('insert into carts set ?', data, function (err, result2) {
+                    conn.release();
+                    if (err) {
+                        console.log('err3 : ' + err);
                         conn.release();
                     }
-                    console.log('exec2 : '+exec2.sql);
+                    console.log('exec2 : ' + exec2.sql);
                     console.log('result2 : ');
                     console.dir(result2);
                 });
@@ -592,19 +593,19 @@ router.route('/basket').post(function (req, res) {
     var size = req.body.size;
     var uid = req.user[0].id;
     var cnt = req.body.cnt;
-    
+
     console.log('장바구니에 담을 상품:' + pid);
     console.log('현재 유저 정보 :' + uid);
     console.log('담을 상품 개수 : ' + cnt);
-    console.log('색상, 사이즈 : '+color, size);
+    console.log('색상, 사이즈 : ' + color, size);
 
     pool.getConnection(function (err, conn) {
         var cid;
         var data;
         var pname;
         var img;
-        var exec0 = conn.query('select * from products where id =?',[pid], function(err, result){
-            console.log('exec0 : '+exec0.sql);
+        var exec0 = conn.query('select * from products where id =?', [pid], function (err, result) {
+            console.log('exec0 : ' + exec0.sql);
             console.log('result : ');
             console.dir(result);
             pname = result[0].pname;
@@ -615,12 +616,12 @@ router.route('/basket').post(function (req, res) {
                 if (rows.length > 0) {
                     cid = rows.length + 1;
                     console.log('cid0:' + cid);
-                    data = { id: cid, userId: uid, productId: pid, cnt: cnt, img: img, pname:pname, color:color, size:size};
+                    data = { id: cid, userId: uid, productId: pid, cnt: cnt, img: img, pname: pname, color: color, size: size };
                 }
                 else {
                     cid = 1;
                     console.log('cid1:' + cid);
-                    data = { id: cid, userId: uid, productId: pid, pname: pname, cnt: cnt, img: img, color:color, size:size};
+                    data = { id: cid, userId: uid, productId: pid, pname: pname, cnt: cnt, img: img, color: color, size: size };
                 }
                 var exec2 = conn.query('insert into carts set ?', data, function (err, row) {
                     if (err) {
@@ -664,6 +665,35 @@ router.route('/mycart').post(function (req, res) {
         });
     });
 });
+
+//장바구니 수정
+router.route('/updateCart').post(function(req, res){
+    var 
+});
+
+//바로구매 //pname, price, seller, img
+router.route('/paydirect').post(function (req, res) {
+    var pid = req.body.productId;
+    var data;
+    pool.getConnection(function (err, conn) {
+        var array = new Array();
+        for (var i = 0; i < pid.length; i++) {
+            data = pid[i];
+            var exec = conn.query('select * from products where id = ?', [data], function (err, row) {
+                console.log('exec : '+exec.sql);
+                if(row){
+                    console.log('row : ');
+                    console.log(row);
+                    array[i] = row;
+                }
+            });
+        }
+        console.log('array : ');
+        console.log(array);
+        res.send({array:array});
+    });
+});
+
 
 //검색
 router.route('/search').post(function (req, res) {
@@ -771,7 +801,7 @@ router.route('/searchBottom').post(function (req, res) {
 router.route('/product/:id').get(function (req, res) {
     var productid = req.params.id;
     var uid = 1; // 임시로 uid1넣은거니까 나중에수정!!!!!!!!!!
-    
+
     console.log('선택한 상품 :' + productid);
     console.log('현재 유저 정보 :' + uid);
     pool.getConnection(function (err, conn) {
@@ -779,35 +809,35 @@ router.route('/product/:id').get(function (req, res) {
             function (err, row) {
                 var selected_product = row;
                 console.log('selected_product : ');
-                console.log('실행sql :' + exec.sql);  
+                console.log('실행sql :' + exec.sql);
                 var exec2 = conn.query("select * from productInfo where productId =?", productid, function (err, detail) {
                     console.log('detail : ');
                     console.log(detail);
                     var exec3 = conn.query("select * from reviews where productId =?", productid, function (err, rows) {
                         console.log('exec3 : ' + exec3.sql);
                         //conn.release();
-                        
+
                         if (rows) { //해당상품에대한 리뷰가 있는 경우
                             console.log('reviews : ');
-                            console.dir(row+rows);
-                            
+                            console.dir(row + rows);
+
                             //res.render('product.ejs', { result: selected_product, uid: uid, rows: rows });
-                            var exec4 = conn.query("select * from imgByColors where productId =?", productid, function(err, colors){
-                                console.log('exec4 : '+exec4.sql);
+                            var exec4 = conn.query("select * from imgByColors where productId =?", productid, function (err, colors) {
+                                console.log('exec4 : ' + exec4.sql);
                                 conn.release();
-                                res.send({result: selected_product, detail: detail, rows: rows, colors:colors});
+                                res.send({ result: selected_product, detail: detail, rows: rows, colors: colors });
                             });
-                            
+
                         } else { //해당상품에대한 리뷰가 없는 경우
                             console.log('리뷰없음');
                             console.dir(row);
                             //res.render('product.ejs', { result: selected_product, uid: uid });
-                            var exec5 = conn.query("select * from imgByColors where productId =?", productid, function(err, colors){
-                                console.log('exec5 : '+exec5.sql);
+                            var exec5 = conn.query("select * from imgByColors where productId =?", productid, function (err, colors) {
+                                console.log('exec5 : ' + exec5.sql);
                                 conn.release();
-                                res.send({result: selected_product, detail: detail, rows: [], colors:colors});
+                                res.send({ result: selected_product, detail: detail, rows: [], colors: colors });
                             });
-                            
+
                         }
                     });
                 });
