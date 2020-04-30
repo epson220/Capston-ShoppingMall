@@ -253,7 +253,8 @@ router.route('/products').get(function (req, res) {
 
     pool.getConnection(function (err, conn) {
         var exec = conn.query("select * from products", function (err, list) {
-            var products = list;
+            var array = list.reverse();
+            var products = array;
             console.log('exec :' +exec.sql);
             //conn.release();
             var exec1 = conn.query("select * from imgByColors", function(err, imgs){
@@ -519,7 +520,7 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
                         console.log('imgByColor_result : ');
                         console.log(result);
                         //res.writeHead('200', { 'Content-Type': 'text/html;charset=utf8' });
-                        res.end('<h2>상품등록성공</h2>');
+                        res.end('<h2>ADD PRODUCT SUCCESS</h2>');
                     }
                 });
             }
@@ -567,7 +568,7 @@ router.route('/toolbarAdd').post(function(req, res){
                 thumbnail = result[0].img;
                 console.log('pname : '+pname+', '+'thumbnail'+thumbnail);
 
-                var data = {pname:pname, cnt:1, userId:uid, productId:productid, img:thumbnail, color:color, size:'M'};
+                var data = {pname:pname, cnt:1, userId:uid, productId:productid, img:thumbnail, color:color};
                 var exec2 = conn.query('insert into carts set ?', data, function(err, result2){
                     if(err){
                         console.log('err3 : '+err);
@@ -587,52 +588,61 @@ router.route('/toolbarAdd').post(function(req, res){
 router.route('/basket').post(function (req, res) {
 
     var pid = req.body.productid;
-    var productname = req.body.productname;
-    var img = req.body.img;
+    var color = req.body.color;
+    var size = req.body.size;
     var uid = req.user[0].id;
     var cnt = req.body.cnt;
-    console.log('장바구니에 담을 상품이름 :' + productname);
-    console.log('장바구니에 담을 상품이미지 : ' + img);
+    
     console.log('장바구니에 담을 상품:' + pid);
     console.log('현재 유저 정보 :' + uid);
     console.log('담을 상품 개수 : ' + cnt);
+    console.log('색상, 사이즈 : '+color, size);
+
     pool.getConnection(function (err, conn) {
         var cid;
         var data;
-        var exec1 = conn.query('select * from carts', function (err, rows) {
-            console.log('실행sql :' + exec1.sql);
-            console.dir(rows);
-            if (rows.length > 0) {
-                cid = rows.length + 1;
-                console.log('cid0:' + cid);
-                data = { id: cid, userId: uid, productId: pid, pname: productname, cnt: cnt, img: img };
-            }
-            else {
-                cid = 1;
-                console.log('cid1:' + cid);
-                data = { id: cid, userId: uid, productId: pid, pname: productname, cnt: cnt, img: img };
-            }
-            var exec2 = conn.query('insert into carts set ?', data, function (err, row) {
-                if (err) {
-                    console.dir(err);
+        var pname;
+        var img;
+        var exec0 = conn.query('select * from products where id =?',[pid], function(err, result){
+            console.log('exec0 : '+exec0.sql);
+            console.log('result : ');
+            console.dir(result);
+            pname = result[0].pname;
+            img = result[0].img;
+            var exec1 = conn.query('select * from carts', function (err, rows) {
+                console.log('실행sql :' + exec1.sql);
+                console.dir(rows);
+                if (rows.length > 0) {
+                    cid = rows.length + 1;
+                    console.log('cid0:' + cid);
+                    data = { id: cid, userId: uid, productId: pid, cnt: cnt, img: img, pname:pname, color:color, size:size};
                 }
-                console.log('실행sql :' + exec2.sql);
-                conn.release();
-                if (row) {
-                    console.dir(row);
-                    console.log('장바구니담기성공!');
-                    res.writeHead('200', { 'Content-Type': 'text/html;charset=utf8' });
-                    //res.write('<h1>장바구니담기성공!</h1>');
-                    res.write('<form id="auto_basket" action="/mycart" method="post">');
-                    res.write('<input type="hidden" value=' + uid + ' name="uid">');
-                    //res.write('<input type="submit" value="다시쇼핑하러가기">');
-                    res.write('</form>');
-                    res.write('<script type="text/javascript"> this.document.getElementById("auto_basket").submit(); </script>');
-                    res.end();
+                else {
+                    cid = 1;
+                    console.log('cid1:' + cid);
+                    data = { id: cid, userId: uid, productId: pid, pname: pname, cnt: cnt, img: img, color:color, size:size};
                 }
+                var exec2 = conn.query('insert into carts set ?', data, function (err, row) {
+                    if (err) {
+                        console.dir(err);
+                    }
+                    console.log('실행sql :' + exec2.sql);
+                    conn.release();
+                    if (row) {
+                        console.dir(row);
+                        console.log('장바구니담기성공!');
+                        res.writeHead('200', { 'Content-Type': 'text/html;charset=utf8' });
+                        //res.write('<h1>장바구니담기성공!</h1>');
+                        res.write('<form id="auto_basket" action="/mycart" method="post">');
+                        res.write('<input type="hidden" value=' + uid + ' name="uid">');
+                        //res.write('<input type="submit" value="다시쇼핑하러가기">');
+                        res.write('</form>');
+                        res.write('<script type="text/javascript"> this.document.getElementById("auto_basket").submit(); </script>');
+                        res.end();
+                    }
+                });
             });
         });
-
     });
 });
 
@@ -932,7 +942,7 @@ router.route('/comment').post(function (req, res, next) {
         );
     });
 });
-
+//리뷰펼쳐보기
 router.route('/openReview').post(function (req, res) {
     var reviewId = req.body.reviewId;
     var uid = req.user[0].id;
