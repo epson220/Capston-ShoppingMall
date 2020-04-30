@@ -257,14 +257,14 @@ router.route('/products').get(function (req, res) {
             console.log('exec :' +exec.sql);
             //conn.release();
             var exec1 = conn.query("select * from imgByColors", function(err, imgs){
-                console.log('exec1 : '+exec.sql);
+                console.log('exec1 : '+exec1.sql);
+                conn.release();
                 if (products.length > 0) {
                     console.dir(products);
                     res.send({result:products, imgs:imgs});
                     //res.render('products.ejs', { list: list });
                 }
             });
-
         });
     });
 });
@@ -758,37 +758,54 @@ router.route('/searchBottom').post(function (req, res) {
 });
 
 //상품정보보기
-router.route('/product/:id').post(function (req, res) {
+router.route('/product/:id').get(function (req, res) {
     var productid = req.params.id;
-    var uid = req.user[0].id;
+    var uid = 1; // 임시로 uid1넣은거니까 나중에수정!!!!!!!!!!
+    
     console.log('선택한 상품 :' + productid);
-    //console.log('현재 유저 정보 :' + uid);
+    console.log('현재 유저 정보 :' + uid);
     pool.getConnection(function (err, conn) {
         var exec = conn.query("select * from products where id = ?", productid,
             function (err, row) {
                 var selected_product = row;
                 console.log('selected_product : ');
-                console.dir(row);
-                console.log('실행sql :' + exec.sql);
-                var exec2 = conn.query("select * from reviews where productId =?", productid, function (err, rows) {
-                    console.log('exec2 : ' + exec2.sql);
-                    conn.release();
-                    if (rows) { //해당상품에대한 리뷰가 있는 경우
-                        console.log('reviews : ');
-                        console.dir(rows);
-
-                        //res.render('product.ejs', { result: selected_product, uid: uid, rows: rows });
-                        res.send({result:selected_product, rows: rows});
-                    } else { //해당상품에대한 리뷰가 없는 경우
-                        console.log('리뷰없음');
-                        //res.render('product.ejs', { result: selected_product, uid: uid });
-                        res.send({result:selected_product, rows:[]});
-                    }
+                console.log('실행sql :' + exec.sql);  
+                var exec2 = conn.query("select * from productInfo where productId =?", productid, function (err, detail) {
+                    console.log('detail : ');
+                    console.log(detail);
+                    var exec3 = conn.query("select * from reviews where productId =?", productid, function (err, rows) {
+                        console.log('exec3 : ' + exec3.sql);
+                        //conn.release();
+                        
+                        if (rows) { //해당상품에대한 리뷰가 있는 경우
+                            console.log('reviews : ');
+                            console.dir(row+rows);
+                            
+                            //res.render('product.ejs', { result: selected_product, uid: uid, rows: rows });
+                            var exec4 = conn.query("select * from imgByColors where productId =?", productid, function(err, colors){
+                                console.log('exec4 : '+exec4.sql);
+                                conn.release();
+                                res.send({result: selected_product, detail: detail, rows: rows, colors:colors});
+                            });
+                            
+                        } else { //해당상품에대한 리뷰가 없는 경우
+                            console.log('리뷰없음');
+                            console.dir(row);
+                            //res.render('product.ejs', { result: selected_product, uid: uid });
+                            var exec5 = conn.query("select * from imgByColors where productId =?", productid, function(err, colors){
+                                console.log('exec5 : '+exec5.sql);
+                                conn.release();
+                                res.send({result: selected_product, detail: detail, rows: [], colors:colors});
+                            });
+                            
+                        }
+                    });
                 });
             }
         );
     });
 });
+
 
 //리뷰작성
 router.post('/review', upload.array('photo', 3), function (req, res, next) {
