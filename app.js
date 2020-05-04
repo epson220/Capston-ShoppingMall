@@ -1,6 +1,7 @@
 var express = require('express');
 var http = require('http');
 var path = require('path');
+require('dotenv').config();
 
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
@@ -28,6 +29,10 @@ var pool = mysql.createPool({
 
 var app = express();
 
+app.set('port', process.env.PORT || 3000);
+app.use(bodyParser.json({type : 'application/json'}));
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.all('/*', function (req, res, next) { //이미지 권한문제의 핵심 나중에 서버쪽 사람들한테 이걸 붙이라고 해라!!!!!!!!!!!!!//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "X-Requested-With");
@@ -37,10 +42,6 @@ app.all('/*', function (req, res, next) { //이미지 권한문제의 핵심 나
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 console.log('뷰 엔진이 ejs로 설정되었습니다.');
-
-app.set('port', process.env.PORT || 3000);
-app.use(bodyParser.json({ type: 'application/json' }));
-app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(cookieParser());
 app.use(expressSession({
@@ -248,13 +249,16 @@ router.route('/signup').post(function (req, res) {
 
 //상품목록조회
 router.route('/products').get(function (req, res) {
+   
     console.log('req.user : ');
     console.log(req.user);
+    //console.log(req.body.test);
 
     pool.getConnection(function (err, conn) {
         var exec = conn.query("select * from products", function (err, list) {
             var array = list.reverse();
             var products = array;
+            console.log(products);
             console.log('exec :' + exec.sql);
             //conn.release();
             var exec1 = conn.query("select * from imgByColors", function (err, imgs) {
@@ -271,8 +275,15 @@ router.route('/products').get(function (req, res) {
 });
 
 var AWS = require('aws-sdk');
+
 var multerS3 = require('multer-s3');
-AWS.config.loadFromPath(__dirname + "/config/awsconfig.json");
+
+AWS.config.update({
+    accessKeyId: process.env.S3_ACCESS_KEY_ID,
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+    region: 'ap-northeast-2',
+});
+//AWS.config.loadFromPath(__dirname + "/config/awsconfig.json");
 console.log(__dirname);
 var upload = multer({
     storage: multerS3({
@@ -532,9 +543,16 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
 });//route.post
 
 //툴바에서 장바구니에 담기
-router.route('/toolbarAdd').post(function (req, res) {
-    var imgurl = req.body.imgurl; //색상별이미지url
-    var uid = req.user[0].id;
+router.route('/toolbarAdd').get(function (req, res) {
+    //var imgurl = req.body.imgurl; //색상별이미지url
+    var imgurl = 'https://swcap02.s3.ap-northeast-2.amazonaws.com/product/1588584971988%ED%94%8C%EB%9D%BC%EC%9D%B41.PNG';
+    //var uid = req.user[0].id;
+    uid = 3;
+    console.log('imgUrl : ');
+    console.dir(imgurl);
+    // console.log('req.body : ');
+    // console.dir(req.body);
+
     pool.getConnection(function (err, conn) {
         if (err) {
             console.log('연결err : ' + err);
@@ -552,7 +570,7 @@ router.route('/toolbarAdd').post(function (req, res) {
             }
             console.log("row : ");
             console.dir(row);
-            productid = row[0].pid;
+            productid = row[0].productId;
             color = row[0].color;
             console.log('productid :' + productid + ', ' + 'color : ' + color);
 
@@ -582,8 +600,8 @@ router.route('/toolbarAdd').post(function (req, res) {
             });
         });
     });
+    res.end('success');
 });
-
 
 //장바구니담기
 router.route('/basket').post(function (req, res) {
@@ -667,16 +685,17 @@ router.route('/mycart').post(function (req, res) {
 });
 
 //장바구니 수정
-router.route('/updateCart').post(function(req, res){
-    var 
-});
+// router.route('/updateCart').post(function(req, res){
+//     var uid = req.user[0].id;
+
+// });
 
 //바로구매 //pname, price, seller, img
 router.route('/paydirect').post(function (req, res) {
     var pid = req.body.productId;
     var data;
+    var array = new Array();
     pool.getConnection(function (err, conn) {
-        var array = new Array();
         for (var i = 0; i < pid.length; i++) {
             data = pid[i];
             var exec = conn.query('select * from products where id = ?', [data], function (err, row) {
@@ -685,13 +704,19 @@ router.route('/paydirect').post(function (req, res) {
                     console.log('row : ');
                     console.log(row);
                     array[i] = row;
+                    console.log('array'+i);
+                    console.log(array[i]);
                 }
             });
         }
-        console.log('array : ');
+        conn.release();
+        console.log('array1 : ');
         console.log(array);
         res.send({array:array});
     });
+    console.log('array2 : ');
+    console.log(array);
+
 });
 
 
@@ -716,45 +741,63 @@ router.route('/search').post(function (req, res) {
     });
 });
 
-//상의조회
-router.route('/top').post(function (req, res) {
-    var uid = req.user[0].id;
-    console.log('uid : ' + uid);
+//카테고리별 조회
+router.route('/productList/:categoryId').get(function (req, res) {
+    // var uid = req.user[0].id;
+    // console.log('uid : ' + uid);
+    categoryId = req.params.categoryId;
     pool.getConnection(function (err, conn) {
-        var exec = conn.query('select * from products where categoryId=1', function (err, rows) {
+        var pid = new Array();
+        var imgArr = new Array();
+        var exec = conn.query('select * from products where categoryId= ?', [categoryId], function (err, rows) {
             if (err) {
                 console.log(err);
             }
             console.log(exec.sql);
-            conn.release();
+            //conn.release();
             if (rows) {
-                console.log('상의제품들 : ');
+                console.log('카테고리에 따른 제품들 : ');
                 console.dir(rows);
-                res.render('top.ejs', { rows: rows, uid, uid });
+                for(var i=0;i<rows.length;i++){
+                    pid[i] = rows[i].id;
+                }
+                console.log('pid : ');
+                console.log(pid);
+                //res.render('top.ejs', { rows: rows, uid, uid });
             }
+            var k = 0;
+            for(var j=0;j<pid.length;j++){
+                var exec1 = conn.query('select * from imgByColors where pid = ?',[pid[j]], function(err, imgs){
+                    for(var l = 0; i<imgs.length; i++){
+                        imgArr[k] = imgs[l];
+                        k++;
+                    }
+                });
+            }
+            res.send({rows:rows, imgArr:imgArr});
         });
     });
 });
 
 //하의조회
-router.route('/bottom').post(function (req, res) {
-    var uid = req.user[0].id;
-    console.log('uid : ' + uid);
-    pool.getConnection(function (err, conn) {
-        var exec = conn.query('select * from products where categoryId=2', function (err, rows) {
-            if (err) {
-                console.log(err);
-            }
-            console.log(exec.sql);
-            conn.release();
-            if (rows) {
-                console.log('하의제품들 : ');
-                console.dir(rows);
-                res.render('bottom.ejs', { rows: rows, uid, uid });
-            }
-        });
-    });
-});
+// router.route('/bottom').post(function (req, res) {
+//     var uid = req.user[0].id;
+//     console.log('uid : ' + uid);
+//     pool.getConnection(function (err, conn) {
+//         var exec = conn.query('select * from products where categoryId=2', function (err, rows) {
+//             if (err) {
+//                 console.log(err);
+//             }
+//             console.log(exec.sql);
+//             conn.release();
+//             if (rows) {
+//                 console.log('하의제품들 : ');
+//                 console.dir(rows);
+//                 res.render('bottom.ejs', { rows: rows, uid, uid });
+//             }
+//         });
+//     });
+// });
 
 //상의검색
 router.route('/searchTop').post(function (req, res) {
@@ -1017,6 +1060,10 @@ router.route('/openReview').post(function (req, res) {
         );
     });
 });
+//구매버튼클릭시, mypage에 구매내역 저장
+// router.route('/purchase').post(){
+    
+// }
 
 app.use('/', router);
 
