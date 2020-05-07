@@ -16,6 +16,7 @@ var multer = require('multer');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var flash = require('connect-flash');
+const promiseMysql = require('promise-mysql');
 
 var pool = mysql.createPool({
     connectionLimit: 10,
@@ -30,7 +31,7 @@ var pool = mysql.createPool({
 var app = express();
 
 app.set('port', process.env.PORT || 3000);
-app.use(bodyParser.json({type : 'application/json'}));
+app.use(bodyParser.json({ type: 'application/json' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.all('/*', function (req, res, next) { //이미지 권한문제의 핵심 나중에 서버쪽 사람들한테 이걸 붙이라고 해라!!!!!!!!!!!!!//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -60,12 +61,7 @@ passport.use('local-login', new LocalStrategy({
 }, function (req, email, password, done) {
     console.log('passport의 local-login 호출됨 :' + email + ', ' + password);
     pool.getConnection(function (err, conn) {
-        // if (err) {
-        //     console.log('커넥션err1 : ' + err);
-        //     if (conn) {
-        //         conn.release();
-        //     }
-        // }
+     
         var exec = conn.query("select * from users where email=? and password=?", [email, password], function (err, user) {
             if (err) {
                 console.log('로그인에러 : ' + err);
@@ -92,12 +88,7 @@ passport.use('local-signup', new LocalStrategy({
 }, function (req, email, password, done) {
     console.log('passport의 local-signup호출됨 : ' + email + ', ' + password);
     pool.getConnection(function (err, conn) {
-        // if (err) {
-        //     console.log('커넥션err2 : ' + err);
-        //     if (conn) {
-        //         conn.release();
-        //     }
-        // }
+      
         var data = { email: email, password: password, name: name };
         console.log('data : '); console.dir(data);
         var exec = conn.query("insert into users set ?", data, function (err, result) {
@@ -249,7 +240,7 @@ router.route('/signup').post(function (req, res) {
 
 //상품목록조회
 router.route('/products').get(function (req, res) {
-   
+
     console.log('req.user : ');
     console.log(req.user);
     //console.log(req.body.test);
@@ -298,107 +289,6 @@ var upload = multer({
         acl: 'public-read-write'
     })
 });
-//상품 등록 하기 
-// router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
-
-//     var productname = req.body.productname;
-//     //var seller = req.user[0].name;
-//     var price = req.body.price;
-//     var categoryId = req.body.categoryId;
-//     var createdAt = req.body.createdAt;
-//     var gender = req.body.gender;
-//     console.log('요청 파라미터 : ' + productname + ', ' + price + ', ' + categoryId + ', ' + createdAt);
-
-//     console.log('file :');
-//     console.dir(req.files);
-//     console.log('파일길이 : '+req.files.length);
-//     var filename = req.files[0].location; //대표이미지(섬네일)
-//     console.log('filename1 : ' + filename);
-//     var filename2 = req.files[1].location; //description이미지
-//     console.log('filename2 : ' + filename2);
-
-//     var colors = req.body.color;
-//     var size = req.body.size;
-//     var cnt = req.body.cnt;
-
-//     console.log('colors : ');
-//     console.dir(colors);
-
-//     console.log('size : ');
-//     console.dir(size);
-
-//     var resized = new Array();
-//     var j=0;
-//     for(var i=2;i<req.files.length;i++){
-//         var originalUrl = req.files[i].location;
-//         var url = originalUrl.replace(/\/product\//,'/thumb/');
-//         resized[j] = url;
-//         console.log('resized'+j+':');
-//         console.log(resized[j]);
-//         j++; 
-//     }
-
-//     pool.getConnection(function (err, conn) {
-//         var pid;
-//         var data;
-//         var Infodata = new Array();
-
-//         var exec1 = conn.query('select * from products', function (err, rows) {
-//             if (err) {
-//                 console.log('err1 : ' + err);
-//                 conn.release();
-//             }
-//             console.log(exec1.sql);
-//             //console.dir(rows);
-//             if (rows.length > 0) {
-//                 pid = rows.length + 1;
-//                 console.log('pid : ' + pid);
-//                 data = { id: pid, pname: productname, price: price, description: filename2, categoryId: categoryId, img: filename, createdAt: createdAt, gender:gender };
-//             } else {
-//                 pid = 1;
-//                 console.log('pid1:' + pid);
-//                 data = { id: pid, pname: productname, price: price, description: filename2, categoryId: categoryId, img: filename, createdAt: createdAt, gender:gender };
-//             }
-//             var exec2 = conn.query('insert into products set ?', data, function (err, result) {
-//                 if (err) {
-//                     console.log('err2 : ' + err);
-//                     conn.release();
-//                 }
-//                 console.log(exec2.sql);
-//                 if (result) {
-//                     console.log('상품등록결과:');
-//                     console.dir(result);
-//                     //res.render('addresult.ejs', { data: data });
-//                 }
-//             });
-
-//             var i = 0;
-//             for(var c=0; c<colors.length; c++){
-//                 for(var s=0; s<size.length; s++){
-//                     Infodata[i] = {productId : pid, color : colors[c], size : size[s], resizedImg : resized[c], cnt:cnt};
-//                     console.log('infodata'+i+' : ');
-//                     console.dir(Infodata[i]);
-//                     i++;
-//                 }
-//             }
-//             for(var j=0; j<i; j++){
-//                 var exec3 = conn.query('insert into productInfo set ?', Infodata[j], function(err, result){
-//                     if(err){
-//                         console.log('err3 : '+err);
-//                     }
-//                     console.log(exec3.sql);
-//                     if(result){
-//                         console.log('상품등록결과2:');
-//                         console.dir(result);
-//                     }
-//                 });
-//             }
-//             conn.release();
-//             res.render('addresult.ejs', { data: data});
-
-//         });
-//     }); 
-// });
 
 //상품등록하기 버전2
 router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
@@ -665,30 +555,108 @@ router.route('/basket').post(function (req, res) {
     });
 });
 
-//장바구니 조회
-router.route('/mycart').post(function (req, res) {
-    var uid = req.user[0].id;
-    pool.getConnection(function (err, conn) {
-        var exec = conn.query("select * from carts where userId = ?", uid, function (err, rows) {
-            console.log(exec.sql);
-            conn.release();
-            if (rows.length > 0) {
-                console.dir(rows);
-                res.render('mycart.ejs', { data: rows, uid: uid });
-            } else {
-                res.writeHead('200', { 'Content-Type': 'text/html;charset=utf8' });
-                res.write('<h1>장바구니에 담긴 물건이 없습니다.</h1>');
-                res.end();
-            }
+function getCartByUserId(uid) {
+    return new Promise((resolve, reject) => {
+        pool.getConnection(function (err, conn) {
+           
+            let products = new Array();
+            let newProducts = new Array();
+
+            conn.query("select * from carts where userId = ?", uid, function (err, rows) {
+                
+                //conn.release();
+                if (rows.length > 0) {
+                    console.log('장바구니 목록 : ');
+                    console.dir(rows);
+                    
+                    for (let i = 0; i < rows.length; i++) {
+                        products[i] = rows[i].productId;
+                    }
+                    console.log('products : ');
+                    console.log(products);
+                    newProducts = Array.from(new Set(products)); //products배열에서 중복을 제거한 배열 newProducts
+                    console.log('중복제거배열 : ');
+                    console.log(newProducts);
+                    conn.release();
+                    resolve({ newProducts: newProducts, rows:rows});
+                }
+            });
         });
     });
-});
+}
+
+function getProInfoByPidQuery(productid) {
+    return new Promise((resolve, reject) => {
+        pool.getConnection(function (err, conn) {
+            conn.query("select * from productInfo where productId=?", [productid],
+                function (err, data) {
+                    resolve(data);
+                }
+            );
+        });
+    });
+}
+
+function getProInfoByPid(productids) {
+    return new Promise((resolve, reject) => {
+        pool.getConnection(async function (err, conn) {
+
+            let results = [];
+            for (let j = 0; j < productids.length; j++) {
+                let dataArr = await getProInfoByPidQuery(productids[j]);
+                console.log('dataArr : ');
+                console.dir(dataArr);
+                if(dataArr.length > 0){
+                    for(let k=0; k<dataArr.length; k++){
+                        results.push(dataArr[k]);
+                    }
+                }
+            }
+            conn.release();
+            console.log('results!!!! : ');
+            console.dir(results);
+            resolve({ results: results });
+        });
+    });
+}
+
+router.route('/mycart').get(async (req, res) => {
+    //var uid = req.user[0].id;
+    let uid = 3;
+    try {
+        let result = await getCartByUserId(uid);
+        console.log('result : ');
+        console.dir(result);
+        console.log(result.newProducts);
+        let results = await getProInfoByPid(result.newProducts);
+        // console.log('results : ');
+        // console.dir(results);
+        console.log('results2 : '); console.dir(results);
+        console.log('result.rows2 : '); console.dir(result.rows);
+        res.json({resultRows:result.rows, results:results});
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: 'error발생' });
+    }
+  
+  });
 
 //장바구니 수정
-// router.route('/updateCart').post(function(req, res){
-//     var uid = req.user[0].id;
-
-// });
+router.route('/updateCart').post(function (req, res) {
+    //var uid = req.user[0].id;
+    var cnt = req.body.cnt;
+    var color = req.body.color;
+    var size = req.body.size;
+    var uid = 3;
+    var cartId = req.body.cartId;
+    pool.getConnection(function (err, conn) {
+        if (err) {
+            console.log('연결err :');
+            console.log(err);
+        }
+        var exec0 = conn.query("update carts set cnt=?, color=?, size=?");
+    });
+});
 
 //바로구매 //pname, price, seller, img
 router.route('/paydirect').post(function (req, res) {
@@ -699,12 +667,12 @@ router.route('/paydirect').post(function (req, res) {
         for (var i = 0; i < pid.length; i++) {
             data = pid[i];
             var exec = conn.query('select * from products where id = ?', [data], function (err, row) {
-                console.log('exec : '+exec.sql);
-                if(row){
+                console.log('exec : ' + exec.sql);
+                if (row) {
                     console.log('row : ');
                     console.log(row);
                     array[i] = row;
-                    console.log('array'+i);
+                    console.log('array' + i);
                     console.log(array[i]);
                 }
             });
@@ -712,7 +680,7 @@ router.route('/paydirect').post(function (req, res) {
         conn.release();
         console.log('array1 : ');
         console.log(array);
-        res.send({array:array});
+        res.send({ array: array });
     });
     console.log('array2 : ');
     console.log(array);
@@ -758,7 +726,7 @@ router.route('/productList/:categoryId').get(function (req, res) {
             if (rows) {
                 console.log('카테고리에 따른 제품들 : ');
                 console.dir(rows);
-                for(var i=0;i<rows.length;i++){
+                for (var i = 0; i < rows.length; i++) {
                     pid[i] = rows[i].id;
                 }
                 console.log('pid : ');
@@ -766,15 +734,15 @@ router.route('/productList/:categoryId').get(function (req, res) {
                 //res.render('top.ejs', { rows: rows, uid, uid });
             }
             var k = 0;
-            for(var j=0;j<pid.length;j++){
-                var exec1 = conn.query('select * from imgByColors where pid = ?',[pid[j]], function(err, imgs){
-                    for(var l = 0; i<imgs.length; i++){
+            for (var j = 0; j < pid.length; j++) {
+                var exec1 = conn.query('select * from imgByColors where pid = ?', [pid[j]], function (err, imgs) {
+                    for (var l = 0; i < imgs.length; i++) {
                         imgArr[k] = imgs[l];
                         k++;
                     }
                 });
             }
-            res.send({rows:rows, imgArr:imgArr});
+            res.send({ rows: rows, imgArr: imgArr });
         });
     });
 });
@@ -1061,9 +1029,20 @@ router.route('/openReview').post(function (req, res) {
     });
 });
 //구매버튼클릭시, mypage에 구매내역 저장
-// router.route('/purchase').post(){
+router.route('/purchase').post(function(req, res){
+    //var uid = req.user[0].id;
+    var totalprice = req.body.totalprice;
+    var uid = 3;
     
-// }
+    var price = req.body.price;
+    var color = req.body.color;
+    var size = req.body.size;
+    var productId = req.body.productId;
+    
+    
+
+});
+
 
 app.use('/', router);
 
