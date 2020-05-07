@@ -257,7 +257,7 @@ router.route('/products').get(function (req, res) {
                 conn.release();
                 if (products.length > 0) {
                     console.dir(products);
-                    res.send({ result: products, imgs: imgs });
+                    res.send({ rows : products, imgs: imgs });
                     //res.render('products.ejs', { list: list });
                 }
             });
@@ -1039,10 +1039,17 @@ router.route('/purchase').post(function(req, res){
     var size = req.body.size;
     var productId = req.body.productId;
     
+    // pool.getConnection(){
+        
+    // }
     
 
 });
 
+//mypage에서 구매내역 조회
+router.route('/mypage').get(function(req, res){
+
+});
 
 app.use('/', router);
 
