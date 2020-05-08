@@ -757,10 +757,11 @@ router.route('/productList/:categoryId').get(function (req, res) {
                         console.log(imgArr);
                         res.send({ rows: productRows, imgArr: imgArr });
                     }
-                    // console.log('imgArr : ');
-                    // console.log(imgArr);
+                    else{
+                        res.send({rows:productRows, imgArr:[]});
+                    }
+                   
                 });
-                //res.render('top.ejs', { rows: rows, uid, uid });
             }
         });
     
