@@ -655,37 +655,45 @@ router.route('/updateCart').post(function (req, res) {
             console.log('연결err :');
             console.log(err);
         }
-        var exec0 = conn.query("update carts set cnt=?, color=?, size=?");
+        var exec0 = conn.query("update carts set cnt=?, color=?, size=? where id = ?",[cnt, color, size, cartId], function(err, modified){
+            if(err){
+                console.log('수정err');
+                console.log(err);
+            }
+            if(modified){
+                console.log('modified : ');
+                console.dir(modified);
+
+                var exec1 = conn.query("select * from carts where userId=?",[uid], function(err, rows){
+                    console.log('장바구니정보 : ');
+                    console.dir(rows);
+                    conn.release();
+                    
+                    res.send({rows: rows});
+                });
+            }
+
+        });
     });
 });
 
 //바로구매 //pname, price, seller, img
 router.route('/paydirect').post(function (req, res) {
     var pid = req.body.productId;
-    var data;
+    
     var array = new Array();
     pool.getConnection(function (err, conn) {
-        for (var i = 0; i < pid.length; i++) {
-            data = pid[i];
-            var exec = conn.query('select * from products where id = ?', [data], function (err, row) {
-                console.log('exec : ' + exec.sql);
-                if (row) {
-                    console.log('row : ');
-                    console.log(row);
-                    array[i] = row;
-                    console.log('array' + i);
-                    console.log(array[i]);
-                }
-            });
-        }
+       
+        var exec = conn.query("select * from `products` where `id` IN" + "(" + pid + ")", function (err, rows) {
+            console.log('exec : ' + exec.sql);
+            if (rows) {
+                console.log('row : ');
+                console.log(row);
+            }
+        });
         conn.release();
-        console.log('array1 : ');
-        console.log(array);
-        res.send({ array: array });
+        res.send({ rows: rows });
     });
-    console.log('array2 : ');
-    console.log(array);
-
 });
 
 
@@ -709,10 +717,6 @@ router.route('/search').post(function (req, res) {
         });
     });
 });
-
-
-
-
 
 //카테고리별 조회
 router.route('/productList/:categoryId').get(function (req, res) {
@@ -1004,6 +1008,7 @@ router.route('/comment').post(function (req, res, next) {
         );
     });
 });
+
 //리뷰펼쳐보기
 router.route('/openReview').post(function (req, res) {
     var reviewId = req.body.reviewId;
@@ -1049,6 +1054,7 @@ router.route('/openReview').post(function (req, res) {
         );
     });
 });
+
 //구매버튼클릭시, mypage에 구매내역 저장
 router.route('/purchase').post(function (req, res) {
     //var uid = req.user[0].id;
@@ -1073,7 +1079,6 @@ router.route('/mypage').get(function (req, res) {
 });
 
 app.use('/', router);
-
 
 http.createServer(app).listen(app.get('port'), function () {
     console.log('서버가 시작되었습니다. 포트: ' + app.get('port'));
