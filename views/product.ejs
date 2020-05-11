@@ -52,7 +52,11 @@
             <h4>리뷰작성</h4>
             <form action='/review' enctype="multipart/form-data" method="post">
                 <input type="hidden" value="<%= val.id %>" name="productid">
-
+                <label>사진첨부1</label>
+                <input type="file" name="photo">
+                <label>사진첨부2</label>
+                <input type="file" name="photo">
+                <label>사진첨부3</label>
                 <input type="file" name="photo">
                 <textarea cols="15" rows="5" name="content"></textarea>
                 <input type="submit" value="리뷰제출">
