@@ -1067,13 +1067,48 @@ router.route('/openReview').post(function (req, res) {
 router.route('/plat_aliance').get(function(req, res){
     
     pool.getConnection(function(err, conn){
-
+        var exec = conn.query("select * from shopadmin", function(err, shopadmins){
+            console.log('shopadmins : ');
+            console.dir(shopadmins);
+            res.send({shopadmins:shopadmins});
+        });
     });
-
 });
 
 
+//제휴승인
+router.route('/accept_aliance').post(function(req, res){
+    var shopadminId = req.body.shopadminId;
 
+    pool.getConnection(function(err, conn){
+        var exec = conn.query("update shopadmin set aliance=1 where id=?",[shopadminId], function(err, updated){
+            console.log(exec.sql);
+            if(updated){
+                console.log('updated : ');
+                console.dir(updated);
+            }
+            conn.release();
+            res.send('suceess aliance');
+        });
+    });
+});
+
+//제휴취소 
+router.route('/delete_aliacne').post(function(req, res){
+    var shopadminId = req.body.shopadminId;
+
+    pool.getConnection(function(err, conn){
+        var exec = conn.query("delete from shopadmin where id=?",[shopadminId], function(err, deleted){
+            console.log(exec.sql);
+            if(deleted){
+                console.log('deleted : ');
+                console.dir(deleted);
+            }
+            conn.release();
+            res.send('delete aliance');
+        });
+    });
+});
 
 
 app.use('/', router);
