@@ -24,7 +24,8 @@
             <select name="categoryId">
                 <option value=1 selected>상의</option>
                 <option value=2>하의</option>
-                <option value=3>모자</option>
+                <option value=3>악세서리</option>
+                <option value=4>신발</option>
             </select>
         </div>
         <div>
@@ -44,17 +45,14 @@
         <br>
         <table>
             <tr>
-                <td></td><td>M</td><td>L</td><td>XL</td><td>Img</td>
+                <td>상품색상</td><td>S</td><td>M</td><td>L</td><td>XL</td><td>이미지첨부</td>
             </tr>
             <tr>
                 <td>
-                    <select name="color">
-                        <option value="red">red</option>
-                        <option value="blue">blue</option>
-                        <option value="black">black</option>
-                        <option value="white">white</option>
-                        <option value="gray">gray</option>
-                    </select>
+                    <input type="text" name="color">
+                </td>
+                <td>
+                    <input type="number" name="S">
                 </td>
                 <td>
                     <input type="number" name="M">
@@ -71,13 +69,10 @@
             </tr>
             <tr>
                 <td>
-                    <select name="color">
-                        <option value="red">red</option>
-                        <option value="blue">blue</option>
-                        <option value="black">black</option>
-                        <option value="white">white</option>
-                        <option value="gray">gray</option>
-                    </select>
+                    <input type="text" name="color">
+                </td>
+                <td>
+                    <input type="number" name="S">
                 </td>
                 <td>
                     <input type="number" name="M">
@@ -94,13 +89,30 @@
             </tr>
             <tr>
                 <td>
-                    <select name="color">
-                        <option value="red">red</option>
-                        <option value="blue">blue</option>
-                        <option value="black">black</option>
-                        <option value="white">white</option>
-                        <option value="gray">gray</option>
-                    </select>
+                    <input type="text" name="color">
+                </td>
+                <td>
+                    <input type="number" name="S">
+                </td>
+                <td>
+                    <input type="number" name="M">
+                </td>
+                <td>
+                    <input type="number" name="L">
+                </td>
+                <td>
+                    <input type="number" name="XL">
+                </td>
+                <td>
+                    <input type="file" name="photo">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="text" name="color">
+                </td>
+                <td>
+                    <input type="number" name="S">
                 </td>
                 <td>
                     <input type="number" name="M">
@@ -116,7 +128,6 @@
                 </td>
             </tr>
         </table>
-
         <br>
         <input type="submit" value="상품업로드완료">
     </form>

@@ -299,14 +299,29 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
     var categoryId = req.body.categoryId;
     var createdAt = req.body.createdAt;
     var gender = req.body.gender;
+    //var seller = req.user[0].shopname; <==나중에 products에 넣을 값
 
     var color = req.body.color;
+    var S = req.body.S;
     var M = req.body.M;
     var L = req.body.L;
     var XL = req.body.XL;
+    var colorCnt = 0;
 
     console.log('color : ');
     console.log(color);
+    console.log('색상가지수 : ');
+    console.log(color.length);
+    for(var i=0;i<color.length;i++){
+        if(color[i]!=''){
+            colorCnt++;
+        }
+    }
+    console.log('진짜색상가지수 : ');
+    console.log(colorCnt);
+    
+    console.log('S : ');
+    console.log(S);
 
     console.log('M : ');
     console.log(M);
@@ -367,15 +382,19 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
             }
 
             var k = 0;
-            for (var i = 0; i < color.length; i++) {
-                for (var j = 0; j < 3; j++) {
-                    if (j == 0) {
+            for (var i = 0; i < colorCnt; i++) {
+                for (var j = 0; j < 4; j++) {
+
+                    if ((j == 0)) {
+                        data2[k] = { productId: pid, color: color[i], size: 'S', cnt: S[i] };
+                    }
+                    if ((j == 1)) {
                         data2[k] = { productId: pid, color: color[i], size: 'M', cnt: M[i] };
                     }
-                    if (j == 1) {
+                    if ((j == 2)) {
                         data2[k] = { productId: pid, color: color[i], size: 'L', cnt: L[i] };
                     }
-                    if (j == 2) {
+                    if ((j == 3)) {
                         data2[k] = { productId: pid, color: color[i], size: 'XL', cnt: XL[i] };
                     }
                     k++;
@@ -392,7 +411,7 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
                         console.dir(err);
                         conn.release();
                     }
-                    if (result) {
+                    if (added_result) {
                         console.log('prductInfo_result : ');
                         console.dir(added_result);
                     }
@@ -400,7 +419,7 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
             }
 
             var d = 0;
-            for (var i = 0; i < color.length; i++) {
+            for (var i = 0; i < colorCnt; i++) {
                 data3[d] = { productId: pid, img: req.files[i + 2].location, color: color[i] };
                 d++;
             }
@@ -415,7 +434,7 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
                         console.dir(err);
                         conn.release();
                     }
-                    if (result) {
+                    if (added_result) {
                         console.log('imgByColor_result : ');
                         console.log(added_result);
                         //res.writeHead('200', { 'Content-Type': 'text/html;charset=utf8' });
@@ -739,7 +758,8 @@ router.route('/productList/:categoryId').get(function (req, res) {
             if (productsByCid) {
                 console.log('카테고리에 따른 제품들 : ');
                 console.dir(productsByCid);
-                productRows = productsByCid;
+                productRows = productsByCid.reverse();
+
                 for (var i = 0; i < productsByCid.length; i++) {
                     pid[i] = productsByCid[i].id;
                 }
@@ -1063,6 +1083,11 @@ router.route('/openReview').post(function (req, res) {
     });
 });
 
+//올린상품조회
+
+
+
+
 //제휴조회
 router.route('/plat_aliance').get(function(req, res){
     
@@ -1074,7 +1099,6 @@ router.route('/plat_aliance').get(function(req, res){
         });
     });
 });
-
 
 //제휴승인
 router.route('/accept_aliance').post(function(req, res){
@@ -1095,6 +1119,7 @@ router.route('/accept_aliance').post(function(req, res){
 
 //제휴취소 
 router.route('/delete_aliacne').post(function(req, res){
+    
     var shopadminId = req.body.shopadminId;
 
     pool.getConnection(function(err, conn){
