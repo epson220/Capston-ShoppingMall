@@ -429,6 +429,7 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
             for (var i = 0; i < d; i++) {
                 var exec3 = conn.query('insert into imgByColors set ?', data3[i], function (err, added_result) {
                     console.log('exec3 : ' + exec3.sql);
+                    conn.release();
                     if (err) {
                         console.log('err3 : ');
                         console.dir(err);
@@ -856,7 +857,7 @@ router.route('/searchBottom').post(function (req, res) {
     });
 });
 
-//상품정보보기
+//상품상세보기
 router.route('/product/:id').get(function (req, res) {
     var productid = req.params.id;
     var uid = 1; // 임시로 uid1넣은거니까 나중에수정!!!!!!!!!!
@@ -977,6 +978,7 @@ router.post('/review', upload.array('photo', 3), function (req, res, next) {
 
 //리뷰에 답변달기 
 router.route('/comment').post(function (req, res, next) {
+    
     var writer = req.body.writer;
     var content = req.body.content;
     var reviewId = req.body.reviewId;
@@ -1084,18 +1086,78 @@ router.route('/openReview').post(function (req, res) {
 });
 
 //올린상품조회
+router.route('/lookupAddedProductList').get(function(req, res){
+    
+    var uid = req.user[0].id;
+    var seller = req.user[0].shopname;
 
+    pool.getConnection(function(err, conn){
+        var exec = conn.query("select * from products where seller=?",[seller], function(err, products){
+            console.log(products);
+            conn.release();
+            res.send({products:products});
+        });
+    });
+});
 
+//올린상품상세조회
+router.route('/lookupAddedProduct').post(function(req, res){
+    
+    var pid = req.body.productId;
 
+    pool.getConnection(function(err, conn){
+        var exec = conn.query("select * from product where id=?",[pid],function(err, product){
+            var exec1 = conn.query("select * from productInfo where productId=?",[pid], function(err, pinfoes){
+                var exec2 = conn.query("select * from imgByColors where productId=?",[pid], function(err, colors){
+                    res.send({product:product, pinfoes:pinfoes, colors:colors});
+                });
+            });
+        });
+    });
+});
+
+//올린상품수정(재고)
+router.route('/updateProduct').post(function(req, res){
+    var pid = req.body.productId;
+    var cnt = req.body.cnt;
+    
+    pool.getConnection(function(err, conn){
+        var exec = conn.query("")
+    });
+
+});
+
+//올린상품삭제
+router.route('/deleteProduct').post(function(req, res){
+
+});
 
 //제휴조회
 router.route('/plat_aliance').get(function(req, res){
     
+    var alianced = [];
+    var notAlianced = [];
+
     pool.getConnection(function(err, conn){
         var exec = conn.query("select * from shopadmin", function(err, shopadmins){
-            console.log('shopadmins : ');
-            console.dir(shopadmins);
-            res.send({shopadmins:shopadmins});
+
+            for(var i=0;i<shopadmins.length;i++){
+                if(shopadmins[i].alianced==1){
+                    alianced.push(shopadmins[i]);
+                }
+                if(shopadmins[i].alianced==0){
+                    notAlianced.push(shopadmins[i]);
+                }
+            }
+
+            console.log('alianced : ');
+            console.dir(alianced);
+
+            console.log('notAlianced : ');
+            console.dir(notAlianced);
+
+            conn.release();
+            res.send({alianced:alianced, notAlianced:notAlianced});
         });
     });
 });
@@ -1103,9 +1165,11 @@ router.route('/plat_aliance').get(function(req, res){
 //제휴승인
 router.route('/accept_aliance').post(function(req, res){
     var shopadminId = req.body.shopadminId;
-
+    console.log('제휴승인아이디 : ');
+    console.log(shopadminId);
+    
     pool.getConnection(function(err, conn){
-        var exec = conn.query("update shopadmin set aliance=1 where id=?",[shopadminId], function(err, updated){
+        var exec = conn.query("update shopadmin set alianced=1 where id=?",[shopadminId], function(err, updated){
             console.log(exec.sql);
             if(updated){
                 console.log('updated : ');
@@ -1118,9 +1182,11 @@ router.route('/accept_aliance').post(function(req, res){
 });
 
 //제휴취소 
-router.route('/delete_aliacne').post(function(req, res){
+router.route('/delete_aliance').post(function(req, res){
     
     var shopadminId = req.body.shopadminId;
+    console.log('끊을 아이디 : ');
+    console.log(shopadminId);
 
     pool.getConnection(function(err, conn){
         var exec = conn.query("delete from shopadmin where id=?",[shopadminId], function(err, deleted){
