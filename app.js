@@ -1,3 +1,4 @@
+
 var express = require('express');
 var http = require('http');
 var path = require('path');
@@ -145,6 +146,10 @@ router.route('/logout').get(function (req, res) {
     res.render('home.ejs');
 });
 
+router.route('/order').get(function(req ,res){
+    res.render('order.ejs');
+});
+
 router.route('/login').post(passport.authenticate('local-login', {
     successRedirect: '/products',
     failureRedirect: '/login',
@@ -255,11 +260,10 @@ router.route('/products').get(function (req, res) {
             var exec1 = conn.query("select * from imgByColors", function (err, imgs) {
                 console.log('exec1 : ' + exec1.sql);
                 conn.release();
-                if (products.length > 0) {
-                    console.dir(products);
-                    res.send({ productList: reversed_products, imgs: imgs });
-                    //res.render('products.ejs', { list: list });
-                }
+               
+                console.dir(imgs);
+                res.send({ productList: reversed_products, imgs: imgs });
+                //res.render('products.ejs', { list: list }); 
             });
         });
     });
@@ -452,15 +456,15 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
 
 
 //툴바에서 장바구니에 담기
-router.route('/toolbarAdd').get(function (req, res) {
-    //var imgurl = req.body.imgurl; //색상별이미지url
-    var imgurl = 'https://swcap02.s3.ap-northeast-2.amazonaws.com/product/1588584971988%ED%94%8C%EB%9D%BC%EC%9D%B41.PNG';
+router.route('/toolbarAdd').post(function (req, res) {
+    var imgurl = req.body.imgurl; //색상별이미지url
+    //var imgurl = 'https://swcap02.s3.ap-northeast-2.amazonaws.com/product/1588584971988%ED%94%8C%EB%9D%BC%EC%9D%B41.PNG';
     //var uid = req.user[0].id;
     uid = 3;
     console.log('imgUrl : ');
     console.dir(imgurl);
-    // console.log('req.body : ');
-    // console.dir(req.body);
+    //  console.log('req.body : ');
+    //  console.dir(req.body);
 
     pool.getConnection(function (err, conn) {
         if (err) {
@@ -559,15 +563,14 @@ router.route('/basket').post(function (req, res) {
                     conn.release();
                     if (added_result) {
                         console.dir(added_result);
-                        console.log('장바구니담기성공!');
-                        res.writeHead('200', { 'Content-Type': 'text/html;charset=utf8' });
-                        //res.write('<h1>장바구니담기성공!</h1>');
-                        res.write('<form id="auto_basket" action="/mycart" method="get">');
-                        res.write('<input type="hidden" value=' + uid + ' name="uid">');
-                        //res.write('<input type="submit" value="다시쇼핑하러가기">');
-                        res.write('</form>');
-                        res.write('<script type="text/javascript"> this.document.getElementById("auto_basket").submit(); </script>');
-                        res.end();
+                        res.send('cart add success!');
+                    //     console.log('장바구니담기성공!');
+                    //     res.writeHead('200', { 'Content-Type': 'text/html;charset=utf8' });
+                    //     res.write('<form id="auto_basket" action="/mycart" method="get">');
+                    //     res.write('<input type="hidden" value=' + uid + ' name="uid">');
+                    //     res.write('</form>');
+                    //     res.write('<script type="text/javascript"> this.document.getElementById("auto_basket").submit(); </script>');
+                    //     res.end();
                     }
                 });
             });
@@ -1106,7 +1109,7 @@ router.route('/lookupAddedProduct').post(function(req, res){
     var pid = req.body.productId;
 
     pool.getConnection(function(err, conn){
-        var exec = conn.query("select * from product where id=?",[pid],function(err, product){
+        var exec = conn.query("select * from products where id=?",[pid],function(err, product){
             var exec1 = conn.query("select * from productInfo where productId=?",[pid], function(err, pinfoes){
                 var exec2 = conn.query("select * from imgByColors where productId=?",[pid], function(err, colors){
                     res.send({product:product, pinfoes:pinfoes, colors:colors});
@@ -1117,20 +1120,55 @@ router.route('/lookupAddedProduct').post(function(req, res){
 });
 
 //올린상품수정(재고)
-router.route('/updateProduct').post(function(req, res){
-    var pid = req.body.productId;
-    var cnt = req.body.cnt;
-    
-    pool.getConnection(function(err, conn){
-        var exec = conn.query("")
-    });
+router.route('/updateProductCnt').post(function(req, res){
+   
+    var productInfo = req.body.productInfo;
+    console.log('받은 상품 정보 : ');
+    console.dir(productInfo);
 
+    var pid = productInfo.productId;
+    var color = productInfo.color;
+    var size = productInfo.size;
+    var cnt = productInfo.cnt;
+
+    pool.getConnection(function(err, conn){
+        var exec = conn.query("update productInfo set cnt=? where productInfo=?",[cnt, pid], function(err, updated){
+            if(updated){
+                console.log('updated');
+                res.send('update complete');
+            }
+        });
+    });
 });
+
+
 
 //올린상품삭제
 router.route('/deleteProduct').post(function(req, res){
 
+    var pid = req.body.productId;
+
+    pool.getConnection(function(err, conn){
+        var exec = conn.query("delete productInfo where productId=?",[pid],function(err, deleted){
+            if(deleted){
+                console.log(deleted);
+            }
+            var exec1 = conn.query("delete products where id=?",[pid],function(err, deleted2){
+                if(deleted2){
+                    console.log(deleted2);
+                }
+                var exec2 = conn.query("delete imgByColors where productId=?",[pid],function(err, deleted3){
+                    if(deleted3){
+                        console.log(deleted3);
+                        conn.release();
+                        res.send('delete success');
+                    }
+                });
+            });
+        });
+    });
 });
+
 
 //제휴조회
 router.route('/plat_aliance').get(function(req, res){
@@ -1195,11 +1233,14 @@ router.route('/delete_aliance').post(function(req, res){
                 console.log('deleted : ');
                 console.dir(deleted);
             }
-            conn.release();
+            var exec = conn.query("select from ")
+
+            //conn.release();
             res.send('delete aliance');
         });
     });
 });
+
 
 
 app.use('/', router);
