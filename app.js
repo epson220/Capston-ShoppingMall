@@ -614,9 +614,21 @@ function getProInfoByPidQuery(productid) {
         pool.getConnection(function (err, conn) {
             conn.query("select * from productInfo where productId=?", [productid],
                 function (err, selected_productInfoes) {
+                    conn.release();
                     resolve(selected_productInfoes);
                 }
             );
+        });
+    });
+}
+
+function getProductByPidQuery(productid){
+    return new Promise((resolve, reject) => {
+        pool.getConnection(function(err, conn){
+            conn.query('select * from products where id = ?', [productid], function(err, pro){
+                conn.release();
+                resolve(pro);
+            });
         });
     });
 }
@@ -626,6 +638,8 @@ function getProInfoByPid(productids) {
         pool.getConnection(async function (err, conn) {
 
             let result2 = [];
+            let result3 = [];
+
             for (let j = 0; j < productids.length; j++) {
                 let selected_productInfoes = await getProInfoByPidQuery(productids[j]);
                 console.log('selected_productInfoes : ');
@@ -635,9 +649,15 @@ function getProInfoByPid(productids) {
                         result2.push(selected_productInfoes[k]);
                     }
                 }
+
+                let product = await getProductByPidQuery(productids[j]);
+                console.log('product : ');
+                console.dir(product);
+                result3.push(product);
+                
             }
             conn.release();
-            resolve({ result2: result2 });
+            resolve({ result2: result2, result3: result3 });
         });
     });
 }
@@ -655,11 +675,11 @@ router.route('/mycart').get(async (req, res) => {
         console.log('result1.cartsByUid : ');
         console.dir(result1.cartsByUid);
 
-        let result2 = await getProInfoByPid(result1.uniquePidArr);
-        console.log('results2 : ');
-        console.dir(result2);
+        let result2n3 = await getProInfoByPid(result1.uniquePidArr);
+        console.log('results2n3 : ');
+        console.dir(result2n3);
 
-        res.json({ cartsByUid: result1.cartsByUid, result2: result2 });
+        res.json({ cartsByUid: result1.cartsByUid, result2n3: result2n3 });
     } catch (err) {
         console.log(err);
         res.status(500).json({ message: 'error발생' });
@@ -882,11 +902,11 @@ router.route('/product/:id').get(function (req, res) {
                         if (reviews) { //해당상품에대한 리뷰가 있는 경우
                             console.log('reviews : ');
                             console.dir(row + reviews);
-
+                            
                             var exec4 = conn.query("select * from imgByColors where productId =?", productid, function (err, colors) {
                                 console.log('exec4 : ' + exec4.sql);
                                 conn.release();
-                                res.send({ selected_product: selected_product, detail: detail, reviews: reviews, colors: colors });
+                                res.send({ selected_product: selected_product, detail: detail, reviews: reviews.reverse(), colors: colors });
                                 //res.render('product.ejs',{ selected_product: selected_product, detail: detail, reviews: reviews, colors: colors });
                             });
 
@@ -937,7 +957,7 @@ router.post('/review', upload.array('photo', 3), function (req, res, next) {
             console.log('user : ');
             console.dir(user);
             if (user) {
-                username = user[0].email;
+                username = user[0].name;
                 console.log('username : ' + username);
             }
             data = { content: content, productId: productId, userId: uid, user_email: username, img: filename, img2: req.files[1].location, img3: req.files[2].location };
@@ -1403,7 +1423,20 @@ router.route('/salesByCategory').get(async function(req, res){
     }
 });
 
+//해당쇼핑몰의 결제내역 최신순 조회 
+router.route('/orderList').get(function(req, res){
+    
+    //var uid = req.user.id;
+    var uid = 15;
+    //var shopname = req.user.name;
+    var shopname = '프롬비기닝';
 
+    pool.getConnection(function(err, conn){
+        
+    });
+
+
+});
 
 
 app.use('/', router);
