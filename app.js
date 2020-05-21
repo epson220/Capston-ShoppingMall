@@ -146,7 +146,7 @@ router.route('/logout').get(function (req, res) {
     res.render('home.ejs');
 });
 
-router.route('/order').get(function(req ,res){
+router.route('/order').get(function (req, res) {
     res.render('order.ejs');
 });
 
@@ -260,7 +260,7 @@ router.route('/products').get(function (req, res) {
             var exec1 = conn.query("select * from imgByColors", function (err, imgs) {
                 console.log('exec1 : ' + exec1.sql);
                 conn.release();
-               
+
                 console.dir(imgs);
                 res.send({ productList: reversed_products, imgs: imgs });
                 //res.render('products.ejs', { list: list }); 
@@ -316,14 +316,14 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
     console.log(color);
     console.log('색상가지수 : ');
     console.log(color.length);
-    for(var i=0;i<color.length;i++){
-        if(color[i]!=''){
+    for (var i = 0; i < color.length; i++) {
+        if (color[i] != '') {
             colorCnt++;
         }
     }
     console.log('진짜색상가지수 : ');
     console.log(colorCnt);
-    
+
     console.log('S : ');
     console.log(S);
 
@@ -564,13 +564,13 @@ router.route('/basket').post(function (req, res) {
                     if (added_result) {
                         console.dir(added_result);
                         res.send('cart add success!');
-                    //     console.log('장바구니담기성공!');
-                    //     res.writeHead('200', { 'Content-Type': 'text/html;charset=utf8' });
-                    //     res.write('<form id="auto_basket" action="/mycart" method="get">');
-                    //     res.write('<input type="hidden" value=' + uid + ' name="uid">');
-                    //     res.write('</form>');
-                    //     res.write('<script type="text/javascript"> this.document.getElementById("auto_basket").submit(); </script>');
-                    //     res.end();
+                        //     console.log('장바구니담기성공!');
+                        //     res.writeHead('200', { 'Content-Type': 'text/html;charset=utf8' });
+                        //     res.write('<form id="auto_basket" action="/mycart" method="get">');
+                        //     res.write('<input type="hidden" value=' + uid + ' name="uid">');
+                        //     res.write('</form>');
+                        //     res.write('<script type="text/javascript"> this.document.getElementById("auto_basket").submit(); </script>');
+                        //     res.end();
                     }
                 });
             });
@@ -652,14 +652,14 @@ router.route('/mycart').get(async (req, res) => {
         console.dir(result1);
         console.log('result1.uniquePidArr : ');
         console.log(result1.uniquePidArr);
-        console.log('result1.cartsByUid : '); 
+        console.log('result1.cartsByUid : ');
         console.dir(result1.cartsByUid);
 
         let result2 = await getProInfoByPid(result1.uniquePidArr);
-        console.log('results2 : '); 
+        console.log('results2 : ');
         console.dir(result2);
-        
-        res.json({ cartsByUid : result1.cartsByUid, result2 : result2 });
+
+        res.json({ cartsByUid: result1.cartsByUid, result2: result2 });
     } catch (err) {
         console.log(err);
         res.status(500).json({ message: 'error발생' });
@@ -681,12 +681,12 @@ router.route('/updateCart').post(function (req, res) {
             console.log('연결err :');
             console.log(err);
         }
-        var exec0 = conn.query("update carts set cnt=?, color=?, size=? where id = ?",[cnt, color, size, cartId], function(err, modified){
-            if(err){
+        var exec0 = conn.query("update carts set cnt=?, color=?, size=? where id = ?", [cnt, color, size, cartId], function (err, modified) {
+            if (err) {
                 console.log('수정err');
                 console.log(err);
             }
-            if(modified){
+            if (modified) {
                 console.log('modified : ');
                 console.dir(modified);
 
@@ -694,7 +694,7 @@ router.route('/updateCart').post(function (req, res) {
                 //     console.log('장바구니정보 : ');
                 //     console.dir(rows);
                 //     conn.release();
-                    
+
                 //     res.send({rows: rows});
                 // });
                 res.send('장바구니 수정 성공');
@@ -707,9 +707,9 @@ router.route('/updateCart').post(function (req, res) {
 //바로구매 //pname, price, seller, img
 router.route('/paydirect').post(function (req, res) {
     var pid = req.body.productId;
-    
+
     pool.getConnection(function (err, conn) {
-       
+
         var exec = conn.query("select * from `products` where `id` IN" + "(" + pid + ")", function (err, productsByPids) {
             console.log('exec : ' + exec.sql);
             if (productsByPids) {
@@ -770,8 +770,8 @@ router.route('/productList/:categoryId').get(function (req, res) {
                 console.log('pid : ');
                 console.log(pid);
 
-                var exec1 = conn.query("select * from `imgByColors` where `productId` IN" + "("+pid+")", function (err, imgs) {
-                    if(err){
+                var exec1 = conn.query("select * from `imgByColors` where `productId` IN" + "(" + pid + ")", function (err, imgs) {
+                    if (err) {
                         console.log('sql에러');
                         console.log(err);
                     }
@@ -786,16 +786,16 @@ router.route('/productList/:categoryId').get(function (req, res) {
                         conn.release();
                         console.log('imgArr : ');
                         console.log(imgArr);
-                        res.send({productRows:productRows, imgArr: imgArr });
+                        res.send({ productRows: productRows, imgArr: imgArr });
                     }
-                    else{
-                        res.send({productRows:productRows, imgArr:[]});
+                    else {
+                        res.send({ productRows: productRows, imgArr: [] });
                     }
-                   
+
                 });
             }
         });
-    
+
     });
 });
 
@@ -864,7 +864,7 @@ router.route('/searchBottom').post(function (req, res) {
 router.route('/product/:id').get(function (req, res) {
     var productid = req.params.id;
     var uid = 1; // 임시로 uid1넣은거니까 나중에수정!!!!!!!!!!
-    
+
     console.log('선택한 상품 :' + productid);
     console.log('현재 유저 정보 :' + uid);
     pool.getConnection(function (err, conn) {
@@ -940,7 +940,7 @@ router.post('/review', upload.array('photo', 3), function (req, res, next) {
                 username = user[0].email;
                 console.log('username : ' + username);
             }
-            data = { content: content, productId: productId, userId: uid, user_email: username, img: filename,  img2:req.files[1].location, img3:req.files[2].location};
+            data = { content: content, productId: productId, userId: uid, user_email: username, img: filename, img2: req.files[1].location, img3: req.files[2].location };
             var exec2 = conn.query('insert into reviews set ?', data, function (err, addresult) {
                 if (err) {
                     console.log('err2 : ' + err);
@@ -964,7 +964,7 @@ router.post('/review', upload.array('photo', 3), function (req, res, next) {
                     conn.release();
                     if (!reviews) {
                         console.log('리뷰없음');
-                        res.render('product.ejs', { selected_product: selected_product, reviews:[] });
+                        res.render('product.ejs', { selected_product: selected_product, reviews: [] });
                     }
                     if (reviews) { //해당상품에대한 리뷰가 있는 경우
                         console.log('리뷰있음');
@@ -981,7 +981,7 @@ router.post('/review', upload.array('photo', 3), function (req, res, next) {
 
 //리뷰에 답변달기 
 router.route('/comment').post(function (req, res, next) {
-    
+
     var writer = req.body.writer;
     var content = req.body.content;
     var reviewId = req.body.reviewId;
@@ -1009,10 +1009,10 @@ router.route('/comment').post(function (req, res, next) {
                 console.log('실행sql :' + exec3.sql);
                 var exec4 = conn.query("select * from reviews where productId =?", productId, function (err, reviews) {
                     console.log('exec4 : ' + exec4.sql);
-                    
+
                     if (!reviews) {
                         console.log('리뷰없음');
-                        res.render('product.ejs', { selected_product: selected_product, reviews:[] });
+                        res.render('product.ejs', { selected_product: selected_product, reviews: [] });
                     }
                     if (reviews) { //해당상품에대한 리뷰가 있는 경우
                         console.log('리뷰있음');
@@ -1023,7 +1023,7 @@ router.route('/comment').post(function (req, res, next) {
                             console.log('exec5 : ' + exec5.sql);
                             if (!comments) {
                                 console.log('답글없음');
-                                res.render('comments.ejs', { selected_product: selected_product, reviews: reviews, comments:[] });
+                                res.render('comments.ejs', { selected_product: selected_product, reviews: reviews, comments: [] });
                             }
 
                             if (comments) {
@@ -1058,10 +1058,10 @@ router.route('/openReview').post(function (req, res) {
                 console.log('실행sql :' + exec3.sql);
                 var exec4 = conn.query("select * from reviews where productId =?", productId, function (err, reviews) {
                     console.log('exec4 : ' + exec4.sql);
-                    
+
                     if (!reviews) {
                         console.log('리뷰없음');
-                        res.render('product.ejs', { selected_product: selected_product, reviews:reviews });
+                        res.render('product.ejs', { selected_product: selected_product, reviews: reviews });
                     }
                     if (reviews) { //해당상품에대한 리뷰가 있는 경우
                         console.log('리뷰있음');
@@ -1072,7 +1072,7 @@ router.route('/openReview').post(function (req, res) {
                             console.log('exec5 : ' + exec5.sql);
                             if (!comments) {
                                 console.log('답글없음');
-                                res.render('comments.ejs', { selected_product: selected_product, reviews: reviews, comments:[] });
+                                res.render('comments.ejs', { selected_product: selected_product, reviews: reviews, comments: [] });
                             }
 
                             if (comments) {
@@ -1089,30 +1089,30 @@ router.route('/openReview').post(function (req, res) {
 });
 
 //올린상품조회
-router.route('/lookupAddedProductList').get(function(req, res){
-    
+router.route('/lookupAddedProductList').get(function (req, res) {
+
     var uid = req.user[0].id;
     var seller = req.user[0].shopname;
 
-    pool.getConnection(function(err, conn){
-        var exec = conn.query("select * from products where seller=?",[seller], function(err, products){
+    pool.getConnection(function (err, conn) {
+        var exec = conn.query("select * from products where seller=?", [seller], function (err, products) {
             console.log(products);
             conn.release();
-            res.send({products:products});
+            res.send({ products: products });
         });
     });
 });
 
 //올린상품상세조회
-router.route('/lookupAddedProduct').post(function(req, res){
-    
+router.route('/lookupAddedProduct').post(function (req, res) {
+
     var pid = req.body.productId;
 
-    pool.getConnection(function(err, conn){
-        var exec = conn.query("select * from products where id=?",[pid],function(err, product){
-            var exec1 = conn.query("select * from productInfo where productId=?",[pid], function(err, pinfoes){
-                var exec2 = conn.query("select * from imgByColors where productId=?",[pid], function(err, colors){
-                    res.send({product:product, pinfoes:pinfoes, colors:colors});
+    pool.getConnection(function (err, conn) {
+        var exec = conn.query("select * from products where id=?", [pid], function (err, product) {
+            var exec1 = conn.query("select * from productInfo where productId=?", [pid], function (err, pinfoes) {
+                var exec2 = conn.query("select * from imgByColors where productId=?", [pid], function (err, colors) {
+                    res.send({ product: product, pinfoes: pinfoes, colors: colors });
                 });
             });
         });
@@ -1120,8 +1120,8 @@ router.route('/lookupAddedProduct').post(function(req, res){
 });
 
 //올린상품수정(재고)
-router.route('/updateProductCnt').post(function(req, res){
-   
+router.route('/updateProductCnt').post(function (req, res) {
+
     var productInfo = req.body.productInfo;
     console.log('받은 상품 정보 : ');
     console.dir(productInfo);
@@ -1131,9 +1131,9 @@ router.route('/updateProductCnt').post(function(req, res){
     var size = productInfo.size;
     var cnt = productInfo.cnt;
 
-    pool.getConnection(function(err, conn){
-        var exec = conn.query("update productInfo set cnt=? where productInfo=?",[cnt, pid], function(err, updated){
-            if(updated){
+    pool.getConnection(function (err, conn) {
+        var exec = conn.query("update productInfo set cnt=? where productInfo=?", [cnt, pid], function (err, updated) {
+            if (updated) {
                 console.log('updated');
                 res.send('update complete');
             }
@@ -1144,21 +1144,21 @@ router.route('/updateProductCnt').post(function(req, res){
 
 
 //올린상품삭제
-router.route('/deleteProduct').post(function(req, res){
+router.route('/deleteProduct').post(function (req, res) {
 
     var pid = req.body.productId;
 
-    pool.getConnection(function(err, conn){
-        var exec = conn.query("delete productInfo where productId=?",[pid],function(err, deleted){
-            if(deleted){
+    pool.getConnection(function (err, conn) {
+        var exec = conn.query("delete productInfo where productId=?", [pid], function (err, deleted) {
+            if (deleted) {
                 console.log(deleted);
             }
-            var exec1 = conn.query("delete products where id=?",[pid],function(err, deleted2){
-                if(deleted2){
+            var exec1 = conn.query("delete products where id=?", [pid], function (err, deleted2) {
+                if (deleted2) {
                     console.log(deleted2);
                 }
-                var exec2 = conn.query("delete imgByColors where productId=?",[pid],function(err, deleted3){
-                    if(deleted3){
+                var exec2 = conn.query("delete imgByColors where productId=?", [pid], function (err, deleted3) {
+                    if (deleted3) {
                         console.log(deleted3);
                         conn.release();
                         res.send('delete success');
@@ -1171,19 +1171,19 @@ router.route('/deleteProduct').post(function(req, res){
 
 
 //제휴조회
-router.route('/plat_aliance').get(function(req, res){
-    
+router.route('/plat_aliance').get(function (req, res) {
+
     var alianced = [];
     var notAlianced = [];
 
-    pool.getConnection(function(err, conn){
-        var exec = conn.query("select * from shopadmin", function(err, shopadmins){
+    pool.getConnection(function (err, conn) {
+        var exec = conn.query("select * from shopadmin", function (err, shopadmins) {
 
-            for(var i=0;i<shopadmins.length;i++){
-                if(shopadmins[i].alianced==1){
+            for (var i = 0; i < shopadmins.length; i++) {
+                if (shopadmins[i].alianced == 1) {
                     alianced.push(shopadmins[i]);
                 }
-                if(shopadmins[i].alianced==0){
+                if (shopadmins[i].alianced == 0) {
                     notAlianced.push(shopadmins[i]);
                 }
             }
@@ -1195,21 +1195,21 @@ router.route('/plat_aliance').get(function(req, res){
             console.dir(notAlianced);
 
             conn.release();
-            res.send({alianced:alianced, notAlianced:notAlianced});
+            res.send({ alianced: alianced, notAlianced: notAlianced });
         });
     });
 });
 
 //제휴승인
-router.route('/accept_aliance').post(function(req, res){
+router.route('/accept_aliance').post(function (req, res) {
     var shopadminId = req.body.shopadminId;
     console.log('제휴승인아이디 : ');
     console.log(shopadminId);
-    
-    pool.getConnection(function(err, conn){
-        var exec = conn.query("update shopadmin set alianced=1 where id=?",[shopadminId], function(err, updated){
+
+    pool.getConnection(function (err, conn) {
+        var exec = conn.query("update shopadmin set alianced=1 where id=?", [shopadminId], function (err, updated) {
             console.log(exec.sql);
-            if(updated){
+            if (updated) {
                 console.log('updated : ');
                 console.dir(updated);
             }
@@ -1220,26 +1220,189 @@ router.route('/accept_aliance').post(function(req, res){
 });
 
 //제휴취소 
-router.route('/delete_aliance').post(function(req, res){
-    
+router.route('/delete_aliance').post(function (req, res) {
+
     var shopadminId = req.body.shopadminId;
     console.log('끊을 아이디 : ');
     console.log(shopadminId);
 
-    pool.getConnection(function(err, conn){
-        var exec = conn.query("delete from shopadmin where id=?",[shopadminId], function(err, deleted){
+    pool.getConnection(function (err, conn) {
+        var exec = conn.query("delete from shopadmin where id=?", [shopadminId], function (err, deleted) {
             console.log(exec.sql);
-            if(deleted){
+            if (deleted) {
                 console.log('deleted : ');
                 console.dir(deleted);
             }
-            var exec = conn.query("select from ")
 
             //conn.release();
             res.send('delete aliance');
         });
     });
 });
+
+
+function getPidsAndCnts(shopname){
+    return new Promise((resolve, reject) => {
+        pool.getConnection(async function(err, conn){
+            let myPidArr = [];
+            let myCntArr = [];
+
+            conn.query('select productId, cnt from orderDetails INNER JOIN products ON orderDetails.productId = products.id and products.seller=?',[shopname], function(err, pidsAndCnts){
+                if (pidsAndCnts.length > 0) {
+                    console.log('pidsAndCnts : ');
+                    console.dir(pidsAndCnts);
+                    console.log(pidsAndCnts.length);
+                    
+                    for(let i=0; i<pidsAndCnts.length; i++) {
+                        myPidArr.push(pidsAndCnts[i].productId);
+                        myCntArr.push(pidsAndCnts[i].cnt);
+                    }
+                    console.log(myCntArr);
+                    console.log(myPidArr);
+                }
+                conn.release();
+                resolve({myCntArr:myCntArr, myPidArr:myPidArr});
+            });
+        });
+    });
+}
+
+function getCidByPid(pid){
+    return new Promise((resolve, reject) => {
+        pool.getConnection(function(err, conn){
+            conn.query('select categoryId from products where id = ?', [pid], function(err, cid){
+                conn.release();
+                if(cid){
+                    resolve(cid);
+                }
+            });
+        });
+    });
+}
+
+function getCidsByPids(myPidArr, myCntArr){
+    return new Promise((resolve, reject) => {
+        pool.getConnection(async function(err, conn){
+            var temp = 0;
+            var CatgoArr = []; //[0]:상의 [1]:하의 [2]:악세서리 [3]:신발 
+            CatgoArr[0] = 0;
+            CatgoArr[1] = 0;
+            CatgoArr[2] = 0;
+            CatgoArr[3] = 0;
+            let cid;
+
+            for(let i=0; i<myPidArr.length; i++){
+                cid = await getCidByPid(myPidArr[i]);
+                console.log("cid : ");
+                console.dir(cid);
+                console.log(cid[0].categoryId);
+                //console.log(cid[i].categoryId);
+
+                if(cid[0].categoryId==1){
+                    temp = CatgoArr[0];
+                    CatgoArr[0] = temp + myCntArr[i];
+                    continue; 
+                }
+                if(cid[0].categoryId==2){
+                    temp = CatgoArr[1];
+                    CatgoArr[1] = temp + myCntArr[i];
+                    continue;
+                }
+                if(cid[0].categoryId==3){
+                    temp = CatgoArr[2];
+                    CatgoArr[2] = temp + myCntArr[i];
+                    continue;
+                }
+                if(cid[0].categoryId==4){
+                    temp = CatgoArr[3];
+                    CatgoArr[3] = temp + myCntArr[i];
+                    continue;
+                }
+            }
+            conn.release();
+            resolve({CatgoArr:CatgoArr});
+        });
+    });
+}
+
+//해당쇼핑몰의 카테고리별로 팔린 수량 조회 
+router.route('/cntByCategory').get(async function (req, res) {
+
+    //var uid = req.user.id;
+    var uid = 15;
+    //var shopname = req.user.name;
+    var shopname = '프롬비기닝';
+
+    try{
+        let result1 = await getPidsAndCnts(shopname);
+        console.log('result1 : ');
+        console.dir(result1);
+        let result2 = await getCidsByPids(result1.myPidArr, result1.myCntArr);
+        console.log('result2 : ');
+        console.dir(result2);
+
+        res.json(result2);
+    }catch (err) {
+        console.log(err);
+        res.status(500).json({ message: 'error발생' });
+    }
+});
+
+function getPnameByPid(pid){
+    return new Promise((resolve, reject) => {
+        pool.getConnection(function(err, conn){
+            conn.query('select pname from products where id = ?',[pid], function(err, pname){
+                conn.release();
+                resolve(pname);
+            });
+        });
+    });
+}
+
+function getCidsAndPnamesByPids(pidArr) {
+    return new Promise((resolve, reject) => {
+        pool.getConnection(async function (err, conn) {
+            let CatArr = [];
+            let PnameArr = [];
+            let cid;
+            let pname;
+            for (let i = 0; i < pidArr.length; i++) {
+                cid = await getCidByPid(pidArr[i]);
+                CatArr.push(cid);
+                pname = await getPnameByPid(pidArr[i]);
+                PnameArr.push(pname);
+            }
+            conn.release();
+            resolve({PnameArr, CatArr});
+        });
+    });
+}
+
+//해당쇼핑몰의 카테고리별 상품판매그래프
+router.route('/salesByCategory').get(async function(req, res){
+
+    //var uid = req.user.id;
+    var uid = 15;
+    //var shopname = req.user.name;
+    var shopname = '프롬비기닝';
+
+    try{
+        let pidsAndCnts = await getPidsAndCnts(shopname);
+        console.dir(pidsAndCnts);
+        let PnamesAndCids = await getCidsAndPnamesByPids(pidsAndCnts.myPidArr);
+        console.dir(PnamesAndCids);
+
+        console.dir(PnamesAndCids.PnameArr);
+        console.dir(PnamesAndCids.CatArr);
+
+        res.json({pidsAndCnts:pidsAndCnts, PnamesAndCids:PnamesAndCids});
+
+    }catch(err){
+        console.log(err);
+        res.status(500).json({ message: 'error발생' });
+    }
+});
+
 
 
 
