@@ -542,37 +542,26 @@ router.route('/basket').post(function (req, res) {
             console.dir(selected_product);
             pname = selected_product[0].pname;
             img = selected_product[0].img;
-            var exec1 = conn.query('select * from carts', function (err, carts) {
-                console.log('실행sql :' + exec1.sql);
-                console.dir(carts);
-                if (carts.length > 0) {
-                    cid = carts.length + 1;
-                    console.log('cid0:' + cid);
-                    data = { id: cid, userId: uid, productId: pid, cnt: cnt, img: img, pname: pname, color: color, size: size };
+
+            data = { userId: uid, productId: pid, cnt: cnt, img: img, pname: pname, color: color, size: size };
+
+            var exec2 = conn.query('insert into carts set ?', data, function (err, added_result) {
+                if (err) {
+                    console.dir(err);
                 }
-                else {
-                    cid = 1;
-                    console.log('cid1:' + cid);
-                    data = { id: cid, userId: uid, productId: pid, pname: pname, cnt: cnt, img: img, color: color, size: size };
+                console.log('실행sql :' + exec2.sql);
+                conn.release();
+                if (added_result) {
+                    console.dir(added_result);
+                    res.send('cart add success!');
+                    //     console.log('장바구니담기성공!');
+                    //     res.writeHead('200', { 'Content-Type': 'text/html;charset=utf8' });
+                    //     res.write('<form id="auto_basket" action="/mycart" method="get">');
+                    //     res.write('<input type="hidden" value=' + uid + ' name="uid">');
+                    //     res.write('</form>');
+                    //     res.write('<script type="text/javascript"> this.document.getElementById("auto_basket").submit(); </script>');
+                    //     res.end();
                 }
-                var exec2 = conn.query('insert into carts set ?', data, function (err, added_result) {
-                    if (err) {
-                        console.dir(err);
-                    }
-                    console.log('실행sql :' + exec2.sql);
-                    conn.release();
-                    if (added_result) {
-                        console.dir(added_result);
-                        res.send('cart add success!');
-                        //     console.log('장바구니담기성공!');
-                        //     res.writeHead('200', { 'Content-Type': 'text/html;charset=utf8' });
-                        //     res.write('<form id="auto_basket" action="/mycart" method="get">');
-                        //     res.write('<input type="hidden" value=' + uid + ' name="uid">');
-                        //     res.write('</form>');
-                        //     res.write('<script type="text/javascript"> this.document.getElementById("auto_basket").submit(); </script>');
-                        //     res.end();
-                    }
-                });
             });
         });
     });
@@ -709,12 +698,10 @@ router.route('/updateCart').post(function (req, res) {
             if (modified) {
                 console.log('modified : ');
                 console.dir(modified);
-
                 // var exec1 = conn.query("select * from carts where userId=?",[uid], function(err, rows){
                 //     console.log('장바구니정보 : ');
                 //     console.dir(rows);
                 //     conn.release();
-
                 //     res.send({rows: rows});
                 // });
                 res.send('장바구니 수정 성공');
@@ -936,9 +923,9 @@ router.post('/review', upload.array('photo', 3), function (req, res, next) {
     var content = req.body.content;
     //var uid = req.user[0].id;
     var uid = 3;
+    var username = req.user[0].name;
     console.log('file :');
     console.dir(req.files);
-
 
     console.log('요청 파라미터 : ,' + productId + ', ' + content);
 
@@ -946,165 +933,149 @@ router.post('/review', upload.array('photo', 3), function (req, res, next) {
     console.log('filename1 : ' + filename);
 
     pool.getConnection(function (err, conn) {
-        var username;
+        
         var data;
         console.log('리뷰작성');
-        var exec1 = conn.query('select * from users where id=?', uid, function (err, user) {
+        
+        data = { content: content, productId: productId, userId: uid, user_email: username, img: filename, img2: req.files[1].location, img3: req.files[2].location };
+        var exec2 = conn.query('insert into reviews set ?', data, function (err, addresult) {
             if (err) {
-                console.log('err : ' + err);
+                conn.release();
+                console.log('err2 : ' + err);
             }
-            console.log(exec1.sql);
-            console.log('user : ');
-            console.dir(user);
-            if (user) {
-                username = user[0].name;
-                console.log('username : ' + username);
+            console.log(exec2.sql);
+            if (addresult) {
+                console.log('리뷰등록결과:');
+                console.dir(addresult);
+                conn.release();
+                res.send('review add success');
             }
-            data = { content: content, productId: productId, userId: uid, user_email: username, img: filename, img2: req.files[1].location, img3: req.files[2].location };
-            var exec2 = conn.query('insert into reviews set ?', data, function (err, addresult) {
-                if (err) {
-                    console.log('err2 : ' + err);
-                }
-                console.log(exec2.sql);
-                if (addresult) {
-                    console.log('리뷰등록결과:');
-                    console.dir(addresult);
-                }
-            });
         });
 
-        var exec3 = conn.query("select * from products where id = ?", productId,
-            function (err, row) {
-                var selected_product = row;
-                console.log('selected_product : ');
-                console.dir(row);
-                console.log('실행sql :' + exec3.sql);
-                var exec4 = conn.query("select * from reviews where productId =?", productId, function (err, reviews) {
-                    console.log('exec4 : ' + exec4.sql);
-                    conn.release();
-                    if (!reviews) {
-                        console.log('리뷰없음');
-                        res.render('product.ejs', { selected_product: selected_product, reviews: [] });
-                    }
-                    if (reviews) { //해당상품에대한 리뷰가 있는 경우
-                        console.log('리뷰있음');
-                        console.log('reviews : ');
-                        console.dir(reviews);
+        // var exec3 = conn.query("select * from products where id = ?", productId,
+        //     function (err, row) {
+        //         var selected_product = row;
+        //         console.log('selected_product : ');
+        //         console.dir(row);
+        //         console.log('실행sql :' + exec3.sql);
+        //         var exec4 = conn.query("select * from reviews where productId =?", productId, function (err, reviews) {
+        //             console.log('exec4 : ' + exec4.sql);
+        //             conn.release();
+        //             if (!reviews) {
+        //                 console.log('리뷰없음');
+        //                 res.render('product.ejs', { selected_product: selected_product, reviews: [] });
+        //             }
+        //             if (reviews) { //해당상품에대한 리뷰가 있는 경우
+        //                 console.log('리뷰있음');
+        //                 console.log('reviews : ');
+        //                 console.dir(reviews);
 
-                        res.render('product.ejs', { selected_product: selected_product, reviews: reviews });
-                    }
-                });
-            }
-        );
+        //                 res.render('product.ejs', { selected_product: selected_product, reviews: reviews });
+        //             }
+        //         });
+        //     }
+        // );
     });
 });
 
 //리뷰에 답변달기 
 router.route('/comment').post(function (req, res, next) {
 
-    var writer = req.body.writer;
+    var writer = req.user[0].name;
     var content = req.body.content;
     var reviewId = req.body.reviewId;
-    var uid = req.user[0].id;
-    var productId = req.body.productid;
-
+    
     pool.getConnection(function (err, conn) {
         var data = { writer: writer, content: content, reviewId: reviewId };
         var exec = conn.query('insert into comments set ?', data, function (err, add_result) {
             console.log('exec :' + exec.sql);
             if (err) {
+                conn.release();
                 console.log('err : ' + err);
             }
             if (add_result) {
                 console.log('comment_result : ');
                 console.dir(add_result);
+                conn.release();
+                res.send('commnet add success');
             }
         });
 
-        var exec3 = conn.query("select * from products where id = ?", productId,
-            function (err, row) {
-                var selected_product = row;
-                console.log('selected_product : ');
-                console.dir(row);
-                console.log('실행sql :' + exec3.sql);
-                var exec4 = conn.query("select * from reviews where productId =?", productId, function (err, reviews) {
-                    console.log('exec4 : ' + exec4.sql);
+        // var exec3 = conn.query("select * from products where id = ?", productId,
+        //     function (err, row) {
+        //         var selected_product = row;
+        //         console.log('selected_product : ');
+        //         console.dir(row);
+        //         console.log('실행sql :' + exec3.sql);
+        //         var exec4 = conn.query("select * from reviews where productId =?", productId, function (err, reviews) {
+        //             console.log('exec4 : ' + exec4.sql);
 
-                    if (!reviews) {
-                        console.log('리뷰없음');
-                        res.render('product.ejs', { selected_product: selected_product, reviews: [] });
-                    }
-                    if (reviews) { //해당상품에대한 리뷰가 있는 경우
-                        console.log('리뷰있음');
-                        console.log('reviews : ');
-                        console.dir(reviews);
-                        var exec5 = conn.query('select * from comments where reviewId=?', reviewId, function (err, comments) {
-                            conn.release();
-                            console.log('exec5 : ' + exec5.sql);
-                            if (!comments) {
-                                console.log('답글없음');
-                                res.render('comments.ejs', { selected_product: selected_product, reviews: reviews, comments: [] });
-                            }
+        //             if (!reviews) {
+        //                 console.log('리뷰없음');
+        //                 res.render('product.ejs', { selected_product: selected_product, reviews: [] });
+        //             }
+        //             if (reviews) { //해당상품에대한 리뷰가 있는 경우
+        //                 console.log('리뷰있음');
+        //                 console.log('reviews : ');
+        //                 console.dir(reviews);
+        //                 var exec5 = conn.query('select * from comments where reviewId=?', reviewId, function (err, comments) {
+        //                     conn.release();
+        //                     console.log('exec5 : ' + exec5.sql);
+        //                     if (!comments) {
+        //                         console.log('답글없음');
+        //                         res.render('comments.ejs', { selected_product: selected_product, reviews: reviews, comments: [] });
+        //                     }
 
-                            if (comments) {
-                                console.log('comments : ');
-                                console.dir(comments);
-                                res.render('comments.ejs', { selected_product: selected_product, reviews: reviews, comments: comments });
-                            }
-                        });
-                    }
-                });
-            }
-        );
+        //                     if (comments) {
+        //                         console.log('comments : ');
+        //                         console.dir(comments);
+        //                         res.render('comments.ejs', { selected_product: selected_product, reviews: reviews, comments: comments });
+        //                     }
+        //                 });
+        //             }
+        //         });
+        //     }
+        //);
     });
 });
-
-
 
 //리뷰펼쳐보기
 router.route('/openReview').post(function (req, res) {
     var reviewId = req.body.reviewId;
     var uid = req.user[0].id;
     var productId = req.body.productid;
-    console.log('open review : ' + reviewId + ', ' + uid + ', ' + productId);
+
+    console.log('open review : ' + reviewId + ', ' + uid);
 
     pool.getConnection(function (err, conn) {
 
-        var exec3 = conn.query("select * from products where id = ?", productId,
-            function (err, row) {
-                var selected_product = row;
-                console.log('selected_product : ');
-                console.dir(row);
-                console.log('실행sql :' + exec3.sql);
-                var exec4 = conn.query("select * from reviews where productId =?", productId, function (err, reviews) {
-                    console.log('exec4 : ' + exec4.sql);
+        var exec4 = conn.query("select * from reviews where id =?", reviewId, function (err, reviews) {
+            console.log('exec4 : ' + exec4.sql);
 
-                    if (!reviews) {
-                        console.log('리뷰없음');
-                        res.render('product.ejs', { selected_product: selected_product, reviews: reviews });
+            if (!reviews) {
+                console.log('리뷰없음');
+                res.render('product.ejs', { reviews: reviews });
+            }
+            if (reviews) { //해당상품에대한 리뷰가 있는 경우
+                console.log('리뷰있음');
+                console.log('review : ');
+                console.dir(review);
+                var exec5 = conn.query('select * from comments where reviewId=?', reviewId, function (err, comments) {
+                    conn.release();
+                    console.log('exec5 : ' + exec5.sql);
+                    if (!comments) {
+                        console.log('답글없음');
+                        res.render('comments.ejs', { reviews: reviews, comments: [] });
                     }
-                    if (reviews) { //해당상품에대한 리뷰가 있는 경우
-                        console.log('리뷰있음');
-                        console.log('reviews : ');
-                        console.dir(reviews);
-                        var exec5 = conn.query('select * from comments where reviewId=?', reviewId, function (err, comments) {
-                            conn.release();
-                            console.log('exec5 : ' + exec5.sql);
-                            if (!comments) {
-                                console.log('답글없음');
-                                res.render('comments.ejs', { selected_product: selected_product, reviews: reviews, comments: [] });
-                            }
 
-                            if (comments) {
-                                console.log('comments : ');
-                                console.dir(comments);
-                                res.render('comments.ejs', { selected_product: selected_product, reviews: reviews, comments: comments });
-                            }
-                        });
+                    if (comments) {
+                        console.log('comments : ');
+                        console.dir(comments);
+                        res.render('comments.ejs', { reviews: reviews, comments: comments });
                     }
                 });
             }
-        );
+        });
     });
 });
 
@@ -1345,7 +1316,7 @@ function getCidsByPids(myPidArr, myCntArr){
     });
 }
 
-//해당쇼핑몰의 카테고리별로 팔린 수량 조회 
+//1.해당쇼핑몰의 카테고리별로 팔린 수량 조회 
 router.route('/cntByCategory').get(async function (req, res) {
 
     //var uid = req.user.id;
@@ -1414,7 +1385,7 @@ router.route('/salesByCategory').get(async function(req, res){
 
         console.dir(PnamesAndCids.PnameArr);
         console.dir(PnamesAndCids.CatArr);
-
+        
         res.json({pidsAndCnts:pidsAndCnts, PnamesAndCids:PnamesAndCids});
 
     }catch(err){
