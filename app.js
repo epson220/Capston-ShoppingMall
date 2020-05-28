@@ -298,6 +298,7 @@ var upload = multer({
 //상품등록하기 버전2
 router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
 
+    if(req.body.categoryId == 1 || req.body.categoryId == 2)
     var productname = req.body.productname;
     var price = req.body.price;
     var categoryId = req.body.categoryId;
@@ -707,6 +708,22 @@ router.route('/updateCart').post(function (req, res) {
                 res.send('장바구니 수정 성공');
             }
 
+        });
+    });
+});
+
+//장바구니 삭제 
+router.route('/deleteCart').post(function(err, conn){
+    var uid = req.user[0].id;
+    var cartId = req.body.cid;
+
+    pool.getConnection(function(req, res){
+        var exec0 = conn.query('delete from carts where id = ?',[cartId], function(err, deleted){
+            if(deleted){
+                console.log(deleted);
+            }
+            conn.release();
+            res.send('delete cart suceess');
         });
     });
 });
@@ -1140,15 +1157,15 @@ router.route('/deleteProduct').post(function (req, res) {
     var pid = req.body.productId;
 
     pool.getConnection(function (err, conn) {
-        var exec = conn.query("delete productInfo where productId=?", [pid], function (err, deleted) {
+        var exec = conn.query("delete from productInfo where productId=?", [pid], function (err, deleted) {
             if (deleted) {
                 console.log(deleted);
             }
-            var exec1 = conn.query("delete products where id=?", [pid], function (err, deleted2) {
+            var exec1 = conn.query("delete from products where id=?", [pid], function (err, deleted2) {
                 if (deleted2) {
                     console.log(deleted2);
                 }
-                var exec2 = conn.query("delete imgByColors where productId=?", [pid], function (err, deleted3) {
+                var exec2 = conn.query("delete from imgByColors where productId=?", [pid], function (err, deleted3) {
                     if (deleted3) {
                         console.log(deleted3);
                         conn.release();
