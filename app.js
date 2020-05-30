@@ -20,7 +20,7 @@ var flash = require('connect-flash');
 //const promiseMysql = require('promise-mysql');
 
 var pool = mysql.createPool({
-    connectionLimit: 10,
+    //connectionLimit: 10,
     host: 'capstone-project.cojwntxe9hru.ap-northeast-2.rds.amazonaws.com',
     user: 'user2',
     port: 3306,
@@ -140,6 +140,10 @@ router.route('/signup').get(function (req, res) {
 
 router.route('/addproduct').get(function (req, res) {
     res.render('addproduct2.ejs');
+});
+
+router.route('/addshoes').get(function (req, res) {
+    res.render('addShoes.ejs');
 });
 
 router.route('/logout').get(function (req, res) {
@@ -295,24 +299,20 @@ var upload = multer({
 });
 
 
+
+
+
+
 //상품등록하기 버전2
 router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
 
-    if(req.body.categoryId == 1 || req.body.categoryId == 2)
     var productname = req.body.productname;
     var price = req.body.price;
     var categoryId = req.body.categoryId;
-    var createdAt = req.body.createdAt;
+    var createdAt = new Date();
     var gender = req.body.gender;
-    //var seller = req.user[0].shopname; <==나중에 products에 넣을 값
-
+    var seller = '상민옷';
     var color = req.body.color;
-    var S = req.body.S;
-    var M = req.body.M;
-    var L = req.body.L;
-    var XL = req.body.XL;
-    var colorCnt = 0;
-
     console.log('color : ');
     console.log(color);
     console.log('색상가지수 : ');
@@ -325,134 +325,213 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
     console.log('진짜색상가지수 : ');
     console.log(colorCnt);
 
-    console.log('S : ');
-    console.log(S);
+    if (req.body.categoryId == 1 || req.body.categoryId == 2) { //1.상하의 추가일때 
 
-    console.log('M : ');
-    console.log(M);
+        var S = req.body.S;
+        var M = req.body.M;
+        var L = req.body.L;
+        var XL = req.body.XL;
+        var colorCnt = 0;
 
-    console.log('L : ');
-    console.log(L);
+        console.log('S : ');
+        console.log(S);
 
-    console.log('XL : ');
-    console.log(XL);
+        console.log('M : ');
+        console.log(M);
 
-    console.log("files : ");
-    console.dir(req.files);
-    console.log("file 갯수 : " + req.files.length);
-    console.log('대표이미지 : ');
-    console.log(req.files[0].location);
-    console.log('상품설명이미지 : ');
-    console.log(req.files[1].location);
+        console.log('L : ');
+        console.log(L);
 
-    pool.getConnection(function (err, conn) {
+        console.log('XL : ');
+        console.log(XL);
+
+        console.log("files : ");
+        console.dir(req.files);
+        console.log("file 갯수 : " + req.files.length);
+        console.log('대표이미지 : ');
+        console.log(req.files[0].location);
+        console.log('상품설명이미지 : ');
+        console.log(req.files[1].location);
+
         var pid;
-        var data;
-        var data2 = new Array();
-        var data3 = new Array();
 
-        if (err) {
-            console.log('디비 연결 에러');
-            conn.release();
-        }
-        data = { pname: productname, price: price, categoryId: categoryId, createdAt: createdAt, gender: gender, img: req.files[0].location, description: req.files[1].location };
-        var exec0 = conn.query('insert into products set ?', data, function (err, result) {
+        pool.getConnection(function (err, conn) {
+            var data;
+
             if (err) {
-                console.log('err0 : ');
-                console.log(err);
+                console.log('디비 연결 에러');
                 conn.release();
             }
-            console.log('exec0 : ' + exec0.sql);
-            if (result) {
-                console.log('products_result : ');
-                console.dir(result);
-            }
-        });
-
-        var exec1 = conn.query('select id from products', function (err, pids) {
-            if (err) {
-                console.log('err1 : ');
-                console.log(err);
-                conn.release();
-            }
-            console.log('exec1 : ' + exec1.sql);
-            console.log('pids : ');
-            console.dir(pids);
-            if (pids.length > 0) {
-                pid = pids.length;
-                console.log('pid : ' + pid);
-            } else {
-                pid = 1;
-                console.log('pid : ' + pid);
-            }
-
-            var k = 0;
-            for (var i = 0; i < colorCnt; i++) {
-                for (var j = 0; j < 4; j++) {
-
-                    if ((j == 0)) {
-                        data2[k] = { productId: pid, color: color[i], size: 'S', cnt: S[i] };
-                    }
-                    if ((j == 1)) {
-                        data2[k] = { productId: pid, color: color[i], size: 'M', cnt: M[i] };
-                    }
-                    if ((j == 2)) {
-                        data2[k] = { productId: pid, color: color[i], size: 'L', cnt: L[i] };
-                    }
-                    if ((j == 3)) {
-                        data2[k] = { productId: pid, color: color[i], size: 'XL', cnt: XL[i] };
-                    }
-                    k++;
-                }
-            }
-            console.log('data2 : ');
-            console.log(data2);
-
-            for (var i = 0; i < k; i++) {
-                var exec2 = conn.query("insert into productInfo set ?", data2[i], function (err, added_result) {
-                    console.log('exec2 : ' + exec2.sql);
-                    if (err) {
-                        console.log('err2 : ');
-                        console.dir(err);
-                        conn.release();
-                    }
-                    if (added_result) {
-                        console.log('prductInfo_result : ');
-                        console.dir(added_result);
-                    }
-                });
-            }
-
-            var d = 0;
-            for (var i = 0; i < colorCnt; i++) {
-                data3[d] = { productId: pid, img: req.files[i + 2].location, color: color[i] };
-                d++;
-            }
-            console.log('data3 : ');
-            console.log(data3);
-
-            for (var i = 0; i < d; i++) {
-                var exec3 = conn.query('insert into imgByColors set ?', data3[i], function (err, added_result) {
-                    console.log('exec3 : ' + exec3.sql);
+            data = [seller, productname, price, categoryId, gender, req.files[0].location, req.files[1].location, createdAt];
+            var exec0 = conn.query("insert into products(seller, pname, price, categoryId, gender, img, description, createdAt) VALUES(?,?,?,?,?,?,?,?)", data, function (err, result) {
+                if (err) {
+                    console.log('err0 : ');
+                    console.log(err);
                     conn.release();
-                    if (err) {
-                        console.log('err3 : ');
-                        console.dir(err);
-                        conn.release();
+                }
+                console.log('exec0 : ' + exec0.sql);
+                if (result) {
+                    console.log('products_result : ');
+                    console.dir(result);
+                    pid = result.insertId;
+                }
+                var data2 = new Array();
+                var k = 0;
+                for (var i = 0; i < colorCnt; i++) {
+                    for (var j = 0; j < 4; j++) {
+
+                        if ((j == 0)) {
+                            data2[k] = { productId: pid, color: color[i], size: 'S', cnt: S[i] };
+                        }
+                        if ((j == 1)) {
+                            data2[k] = { productId: pid, color: color[i], size: 'M', cnt: M[i] };
+                        }
+                        if ((j == 2)) {
+                            data2[k] = { productId: pid, color: color[i], size: 'L', cnt: L[i] };
+                        }
+                        if ((j == 3)) {
+                            data2[k] = { productId: pid, color: color[i], size: 'XL', cnt: XL[i] };
+                        }
+                        k++;
                     }
-                    if (added_result) {
-                        console.log('imgByColor_result : ');
-                        console.log(added_result);
-                        //res.writeHead('200', { 'Content-Type': 'text/html;charset=utf8' });
-                        res.end('<h2>ADD PRODUCT SUCCESS</h2>');
-                    }
-                });
+                }
+                console.log('data2 : ');
+                console.log(data2);
+
+                for (var i = 0; i < data2.length; i++) {
+                    var exec2 = conn.query("insert into productInfo set ?", data2[i], function (err, added_result) {
+                        console.log('exec2 : ' + exec2.sql);
+                        if (err) {
+                            console.log('err2 : ');
+                            console.dir(err);
+                            conn.release();
+                        }
+                        if (added_result) {
+                            console.log('prductInfo_result : ');
+                            console.dir(added_result);
+                        }
+                    });
+                }
+
+                var data3 = new Array();
+                var d = 0;
+                for (var i = 0; i < colorCnt; i++) {
+                    data3[d] = { productId: pid, img: req.files[i + 2].location, color: color[i] };
+                    d++;
+                }
+                console.log('data3 : ');
+                console.log(data3);
+
+                for (var i = 0; i < d; i++) {
+                    var exec3 = conn.query('insert into imgByColors set ?', data3[i], function (err, added_result) {
+                        console.log('exec3 : ' + exec3.sql);
+                        if (err) {
+                            console.log('err3 : ');
+                            console.dir(err);
+                            conn.release();
+                        }
+                        if (added_result) {
+                            console.log('imgByColor_result : ');
+                            console.log(added_result);
+                            //res.writeHead('200', { 'Content-Type': 'text/html;charset=utf8' });
+                            //conn.release();
+                        }
+                    });
+                }
+                conn.release();
+                res.end('<h2>ADD PRODUCT SUCCESS</h2>');
+            });//exec0
+            //conn.release();
+        });//pool1
+    }//if상하의
+
+    if (req.body.categoryId == 3) {//패션잡화인경우
+
+    }
+
+    if (req.body.categoryId == 4) {//신발일 경우 
+
+        var size = req.body.size;
+        var cnt = req.body.cnt;
+
+        var sizeCnt = 0;
+        console.log('size : ');
+        console.log(size);
+        console.log(size.length);
+        for (var i = 0; i < size.length; i++) {
+            if (size[i] != '') {
+                sizeCnt++;
             }
+        }
+        console.log(sizeCnt);
 
-        });//exec1
+        pool.getConnection(function (err, conn) {
+            var pid;
+            var data;
+            var data2 = new Array();
+            var data3 = new Array();
 
-    });//pool.getConnection
+            data = { pname: productname, price: price, categoryId: categoryId, createdAt: new Date(), gender: gender, img: req.files[0].location, description: req.files[1].location };
 
+            var exec0 = conn.query("insert into products set ?", data, function (err, inserted) {
+                if (err) {
+                    console.log('err0 : ');
+                    console.log(err);
+                    conn.release();
+                }
+                console.log('exec0 : ' + exec0.sql);
+                if (inserted) {
+                    console.log('inserted : ');
+                    console.dir(inserted);
+                    pid = inserted.insertId;
+                    console.log(pid);
+                }
+
+                var k = 0;
+                for (var i = 0; i < colorCnt; i++) {
+                    for (var j = 0; j < sizeCnt; j++) {
+                        data2[k] = { productId: pid, color: color[i], size: size[j], cnt: cnt[k] };
+                        k++;
+                    }
+                }
+                console.log('data2 : ');
+                console.log(data2);
+
+                for (var i = 0; i < data2.length; i++) {
+                    var exec1 = conn.query('insert into productInfo set ?', [data2[i]], function (err, inserted) {
+                        console.log('inserted ' + i + ' : ');
+                        console.dir(inserted);
+                    });
+                }//exec1
+
+                var d = 0;
+                for (var i = 0; i < colorCnt; i++) {
+                    data3[d] = { productId: pid, img: req.files[i + 2].location, color: color[i] };
+                    d++;
+                }
+                console.log('data3 : ');
+                console.log(data3);
+
+                for (var i = 0; i < d; i++) {
+                    var exec2 = conn.query('insert into imgByColors set ?', data3[i], function (err, added_result) {
+                        console.log('exec3 : ' + exec3.sql);
+                        conn.release();
+                        if (err) {
+                            console.log('err3 : ');
+                            console.dir(err);
+                            conn.release();
+                        }
+                        if (added_result) {
+                            console.log('imgByColor_result : ');
+                            console.log(added_result);
+                            //res.writeHead('200', { 'Content-Type': 'text/html;charset=utf8' });
+                            res.end('<h2>ADD PRODUCT SUCCESS</h2>');
+                        }
+                    });
+                }//exec2
+            });//exec0
+        });//pool
+    }//if(신발)
 });//route.post
 
 
@@ -612,10 +691,10 @@ function getProInfoByPidQuery(productid) {
     });
 }
 
-function getProductByPidQuery(productid){
+function getProductByPidQuery(productid) {
     return new Promise((resolve, reject) => {
-        pool.getConnection(function(err, conn){
-            conn.query('select * from products where id = ?', [productid], function(err, pro){
+        pool.getConnection(function (err, conn) {
+            conn.query('select * from products where id = ?', [productid], function (err, pro) {
                 conn.release();
                 resolve(pro);
             });
@@ -644,7 +723,7 @@ function getProInfoByPid(productids) {
                 console.log('product : ');
                 console.dir(product);
                 result3.push(product);
-                
+
             }
             conn.release();
             resolve({ result2: result2, result3: result3 });
@@ -713,13 +792,13 @@ router.route('/updateCart').post(function (req, res) {
 });
 
 //장바구니 삭제 
-router.route('/deleteCart').post(function(err, conn){
+router.route('/deleteCart').post(function (err, conn) {
     var uid = req.user[0].id;
     var cartId = req.body.cid;
 
-    pool.getConnection(function(req, res){
-        var exec0 = conn.query('delete from carts where id = ?',[cartId], function(err, deleted){
-            if(deleted){
+    pool.getConnection(function (req, res) {
+        var exec0 = conn.query('delete from carts where id = ?', [cartId], function (err, deleted) {
+            if (deleted) {
                 console.log(deleted);
             }
             conn.release();
@@ -906,7 +985,7 @@ router.route('/product/:id').get(function (req, res) {
                         if (reviews) { //해당상품에대한 리뷰가 있는 경우
                             console.log('reviews : ');
                             console.dir(row + reviews);
-                            
+
                             var exec4 = conn.query("select * from imgByColors where productId =?", productid, function (err, colors) {
                                 console.log('exec4 : ' + exec4.sql);
                                 conn.release();
@@ -950,10 +1029,10 @@ router.post('/review', upload.array('photo', 3), function (req, res, next) {
     console.log('filename1 : ' + filename);
 
     pool.getConnection(function (err, conn) {
-        
+
         var data;
         console.log('리뷰작성');
-        
+
         data = { content: content, productId: productId, userId: uid, user_email: username, img: filename, img2: req.files[1].location, img3: req.files[2].location };
         var exec2 = conn.query('insert into reviews set ?', data, function (err, addresult) {
             if (err) {
@@ -1001,7 +1080,7 @@ router.route('/comment').post(function (req, res, next) {
     var writer = req.user[0].name;
     var content = req.body.content;
     var reviewId = req.body.reviewId;
-    
+
     pool.getConnection(function (err, conn) {
         var data = { writer: writer, content: content, reviewId: reviewId };
         var exec = conn.query('insert into comments set ?', data, function (err, add_result) {
@@ -1249,19 +1328,19 @@ router.route('/delete_aliance').post(function (req, res) {
 });
 
 
-function getPidsAndCnts(shopname){
+function getPidsAndCnts(shopname) {
     return new Promise((resolve, reject) => {
-        pool.getConnection(async function(err, conn){
+        pool.getConnection(async function (err, conn) {
             let myPidArr = [];
             let myCntArr = [];
 
-            conn.query('select productId, cnt from orderDetails INNER JOIN products ON orderDetails.productId = products.id and products.seller=?',[shopname], function(err, pidsAndCnts){
+            conn.query('select productId, cnt from orderDetails INNER JOIN products ON orderDetails.productId = products.id and products.seller=?', [shopname], function (err, pidsAndCnts) {
                 if (pidsAndCnts.length > 0) {
                     console.log('pidsAndCnts : ');
                     console.dir(pidsAndCnts);
                     console.log(pidsAndCnts.length);
-                    
-                    for(let i=0; i<pidsAndCnts.length; i++) {
+
+                    for (let i = 0; i < pidsAndCnts.length; i++) {
                         myPidArr.push(pidsAndCnts[i].productId);
                         myCntArr.push(pidsAndCnts[i].cnt);
                     }
@@ -1269,18 +1348,18 @@ function getPidsAndCnts(shopname){
                     console.log(myPidArr);
                 }
                 conn.release();
-                resolve({myCntArr:myCntArr, myPidArr:myPidArr});
+                resolve({ myCntArr: myCntArr, myPidArr: myPidArr });
             });
         });
     });
 }
 
-function getCidByPid(pid){
+function getCidByPid(pid) {
     return new Promise((resolve, reject) => {
-        pool.getConnection(function(err, conn){
-            conn.query('select categoryId from products where id = ?', [pid], function(err, cid){
+        pool.getConnection(function (err, conn) {
+            conn.query('select categoryId from products where id = ?', [pid], function (err, cid) {
                 conn.release();
-                if(cid){
+                if (cid) {
                     resolve(cid);
                 }
             });
@@ -1288,9 +1367,9 @@ function getCidByPid(pid){
     });
 }
 
-function getCidsByPids(myPidArr, myCntArr){
+function getCidsByPids(myPidArr, myCntArr) {
     return new Promise((resolve, reject) => {
-        pool.getConnection(async function(err, conn){
+        pool.getConnection(async function (err, conn) {
             var temp = 0;
             var CatgoArr = []; //[0]:상의 [1]:하의 [2]:악세서리 [3]:신발 
             CatgoArr[0] = 0;
@@ -1299,36 +1378,36 @@ function getCidsByPids(myPidArr, myCntArr){
             CatgoArr[3] = 0;
             let cid;
 
-            for(let i=0; i<myPidArr.length; i++){
+            for (let i = 0; i < myPidArr.length; i++) {
                 cid = await getCidByPid(myPidArr[i]);
                 console.log("cid : ");
                 console.dir(cid);
                 console.log(cid[0].categoryId);
                 //console.log(cid[i].categoryId);
 
-                if(cid[0].categoryId==1){
+                if (cid[0].categoryId == 1) {
                     temp = CatgoArr[0];
                     CatgoArr[0] = temp + myCntArr[i];
-                    continue; 
+                    continue;
                 }
-                if(cid[0].categoryId==2){
+                if (cid[0].categoryId == 2) {
                     temp = CatgoArr[1];
                     CatgoArr[1] = temp + myCntArr[i];
                     continue;
                 }
-                if(cid[0].categoryId==3){
+                if (cid[0].categoryId == 3) {
                     temp = CatgoArr[2];
                     CatgoArr[2] = temp + myCntArr[i];
                     continue;
                 }
-                if(cid[0].categoryId==4){
+                if (cid[0].categoryId == 4) {
                     temp = CatgoArr[3];
                     CatgoArr[3] = temp + myCntArr[i];
                     continue;
                 }
             }
             conn.release();
-            resolve({CatgoArr:CatgoArr});
+            resolve({ CatgoArr: CatgoArr });
         });
     });
 }
@@ -1341,7 +1420,7 @@ router.route('/cntByCategory').get(async function (req, res) {
     //var shopname = req.user.name;
     var shopname = '프롬비기닝';
 
-    try{
+    try {
         let result1 = await getPidsAndCnts(shopname);
         console.log('result1 : ');
         console.dir(result1);
@@ -1350,16 +1429,16 @@ router.route('/cntByCategory').get(async function (req, res) {
         console.dir(result2);
 
         res.json(result2);
-    }catch (err) {
+    } catch (err) {
         console.log(err);
         res.status(500).json({ message: 'error발생' });
     }
 });
 
-function getPnameByPid(pid){
+function getPnameByPid(pid) {
     return new Promise((resolve, reject) => {
-        pool.getConnection(function(err, conn){
-            conn.query('select pname from products where id = ?',[pid], function(err, pname){
+        pool.getConnection(function (err, conn) {
+            conn.query('select pname from products where id = ?', [pid], function (err, pname) {
                 conn.release();
                 resolve(pname);
             });
@@ -1381,20 +1460,20 @@ function getCidsAndPnamesByPids(pidArr) {
                 PnameArr.push(pname);
             }
             conn.release();
-            resolve({PnameArr, CatArr});
+            resolve({ PnameArr, CatArr });
         });
     });
 }
 
 //해당쇼핑몰의 카테고리별 상품판매그래프
-router.route('/salesByCategory').get(async function(req, res){
+router.route('/salesByCategory').get(async function (req, res) {
 
     //var uid = req.user.id;
     var uid = 15;
     //var shopname = req.user.name;
     var shopname = '프롬비기닝';
 
-    try{
+    try {
         let pidsAndCnts = await getPidsAndCnts(shopname);
         console.dir(pidsAndCnts);
         let PnamesAndCids = await getCidsAndPnamesByPids(pidsAndCnts.myPidArr);
@@ -1402,25 +1481,25 @@ router.route('/salesByCategory').get(async function(req, res){
 
         console.dir(PnamesAndCids.PnameArr);
         console.dir(PnamesAndCids.CatArr);
-        
-        res.json({pidsAndCnts:pidsAndCnts, PnamesAndCids:PnamesAndCids});
 
-    }catch(err){
+        res.json({ pidsAndCnts: pidsAndCnts, PnamesAndCids: PnamesAndCids });
+
+    } catch (err) {
         console.log(err);
         res.status(500).json({ message: 'error발생' });
     }
 });
 
 //해당쇼핑몰의 결제내역 최신순 조회 
-router.route('/orderList').get(function(req, res){
-    
+router.route('/orderList').get(function (req, res) {
+
     //var uid = req.user.id;
     var uid = 15;
     //var shopname = req.user.name;
     var shopname = '프롬비기닝';
 
-    pool.getConnection(function(err, conn){
-        
+    pool.getConnection(function (err, conn) {
+
     });
 
 
