@@ -313,6 +313,7 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
     var gender = req.body.gender;
     var seller = '상민옷';
     var color = req.body.color;
+    var colorCnt = 0;
     console.log('color : ');
     console.log(color);
     console.log('색상가지수 : ');
@@ -331,7 +332,6 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
         var M = req.body.M;
         var L = req.body.L;
         var XL = req.body.XL;
-        var colorCnt = 0;
 
         console.log('S : ');
         console.log(S);
@@ -453,6 +453,7 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
 
         var size = req.body.size;
         var cnt = req.body.cnt;
+        var newCnt = []; //cnt에서 ''를 제거한 배열
 
         var sizeCnt = 0;
         console.log('size : ');
@@ -465,13 +466,20 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
         }
         console.log(sizeCnt);
 
+        for(var i=0; i<cnt.length; i++){
+            if(cnt[i] != ''){
+                newCnt.push(cnt[i]);
+            }
+        }
+        console.log(newCnt);
+
         pool.getConnection(function (err, conn) {
             var pid;
             var data;
             var data2 = new Array();
             var data3 = new Array();
 
-            data = { pname: productname, price: price, categoryId: categoryId, createdAt: new Date(), gender: gender, img: req.files[0].location, description: req.files[1].location };
+            data = { seller:seller, pname: productname, price: price, categoryId: categoryId, createdAt: new Date(), gender: gender, img: req.files[0].location, description: req.files[1].location };
 
             var exec0 = conn.query("insert into products set ?", data, function (err, inserted) {
                 if (err) {
@@ -490,7 +498,7 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
                 var k = 0;
                 for (var i = 0; i < colorCnt; i++) {
                     for (var j = 0; j < sizeCnt; j++) {
-                        data2[k] = { productId: pid, color: color[i], size: size[j], cnt: cnt[k] };
+                        data2[k] = { productId: pid, color: color[i], size: size[j], cnt: newCnt[k] };
                         k++;
                     }
                 }
@@ -514,8 +522,7 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
 
                 for (var i = 0; i < d; i++) {
                     var exec2 = conn.query('insert into imgByColors set ?', data3[i], function (err, added_result) {
-                        console.log('exec3 : ' + exec3.sql);
-                        conn.release();
+                        console.log('exec2 : ' + exec2.sql);
                         if (err) {
                             console.log('err3 : ');
                             console.dir(err);
@@ -525,10 +532,11 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
                             console.log('imgByColor_result : ');
                             console.log(added_result);
                             //res.writeHead('200', { 'Content-Type': 'text/html;charset=utf8' });
-                            res.end('<h2>ADD PRODUCT SUCCESS</h2>');
                         }
                     });
                 }//exec2
+                conn.release();
+                res.end('<h2>ADD PRODUCT SUCCESS</h2>');
             });//exec0
         });//pool
     }//if(신발)
