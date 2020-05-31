@@ -446,7 +446,76 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
     }//if상하의
 
     if (req.body.categoryId == 3) {//패션잡화인경우
+        
+        var cnt = req.body.cnt;
 
+        pool.getConnection(function (err, conn) {
+            var pid;
+            var data;
+            var data2 = new Array();
+            var data3 = new Array();
+
+            data = { seller:seller, pname: productname, price: price, categoryId: categoryId, createdAt: new Date(), gender: gender, img: req.files[0].location, description: req.files[1].location };
+
+            var exec0 = conn.query("insert into products set ?", data, function (err, inserted) {
+                if (err) {
+                    console.log('err0 : ');
+                    console.log(err);
+                    conn.release();
+                }
+                console.log('exec0 : ' + exec0.sql);
+                if (inserted) {
+                    console.log('inserted : ');
+                    console.dir(inserted);
+                    pid = inserted.insertId;
+                    console.log(pid);
+                }
+
+                var k = 0;
+                for (var i = 0; i < colorCnt; i++) {
+
+                    data2[k] = { productId: pid, color: color[i], size: 'F', cnt: cnt[k] };
+                    k++;
+
+                }
+                console.log('data2 : ');
+                console.log(data2);
+
+                for (var i = 0; i < data2.length; i++) {
+                    var exec1 = conn.query('insert into productInfo set ?', [data2[i]], function (err, inserted) {
+                        console.log('inserted ' + i + ' : ');
+                        console.dir(inserted);
+                    });
+                }//exec1
+
+                var d = 0;
+                for (var i = 0; i < colorCnt; i++) {
+                    data3[d] = { productId: pid, img: req.files[i + 2].location, color: color[i] };
+                    d++;
+                }
+                console.log('data3 : ');
+                console.log(data3);
+
+                for (var i = 0; i < d; i++) {
+                    var exec2 = conn.query('insert into imgByColors set ?', data3[i], function (err, added_result) {
+                        console.log('exec2 : ' + exec2.sql);
+                        if (err) {
+                            console.log('err3 : ');
+                            console.dir(err);
+                            conn.release();
+                        }
+                        if (added_result) {
+                            console.log('imgByColor_result : ');
+                            console.log(added_result);
+                            //res.writeHead('200', { 'Content-Type': 'text/html;charset=utf8' });
+                        }
+                    });
+                }//exec2
+                conn.release();
+                res.end('<h2>ADD PRODUCT SUCCESS</h2>');
+            });//exec0
+        });//pool
+        
     }
 
     if (req.body.categoryId == 4) {//신발일 경우 
