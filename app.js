@@ -299,10 +299,6 @@ var upload = multer({
 });
 
 
-
-
-
-
 //상품등록하기 버전2
 router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
 
@@ -381,18 +377,29 @@ router.post('/addproduct', upload.array('photo', 8), function (req, res, next) {
                     for (var j = 0; j < 4; j++) {
 
                         if ((j == 0)) {
-                            data2[k] = { productId: pid, color: color[i], size: 'S', cnt: S[i] };
+                            if((S[i]!=0) || (S[i]!='')){
+                                data2[k] = { productId: pid, color: color[i], size: 'S', cnt: S[i] };
+                                k++;
+                            }
                         }
                         if ((j == 1)) {
-                            data2[k] = { productId: pid, color: color[i], size: 'M', cnt: M[i] };
+                            if((M[i]!=0) || (M[i]!='')){
+                                data2[k] = { productId: pid, color: color[i], size: 'M', cnt: M[i] };
+                                k++;
+                            }
                         }
                         if ((j == 2)) {
-                            data2[k] = { productId: pid, color: color[i], size: 'L', cnt: L[i] };
+                            if((L[i]!=0) || (L[i]!='')){
+                                data2[k] = { productId: pid, color: color[i], size: 'L', cnt: L[i] };
+                                k++;
+                            }
                         }
-                        if ((j == 3)) {
-                            data2[k] = { productId: pid, color: color[i], size: 'XL', cnt: XL[i] };
+                        if ((j == 3) && XL[i] != 0) {
+                            if((XL[i]!=0) || (XL[i]!=0)){
+                                data2[k] = { productId: pid, color: color[i], size: 'XL', cnt: XL[i] };
+                                k++;
+                            }
                         }
-                        k++;
                     }
                 }
                 console.log('data2 : ');
@@ -1296,7 +1303,7 @@ router.route('/updateProductCnt').post(function (req, res) {
     var cnt = productInfo.cnt;
 
     pool.getConnection(function (err, conn) {
-        var exec = conn.query("update productInfo set cnt=? where productInfo=?", [cnt, pid], function (err, updated) {
+        var exec = conn.query("update productInfo set cnt=? where id=?", [cnt, pid], function (err, updated) {
             if (updated) {
                 console.log('updated');
                 res.send('update complete');
