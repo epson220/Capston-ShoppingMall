@@ -1259,6 +1259,55 @@ router.route('/openReview').post(function (req, res) {
     });
 });
 
+//리뷰삭제 
+router.route('/deleteReview').post(function(req, res){
+    rid = req.body.reviewId;
+    uid = req.user[0].id;
+    
+    pool.getConnection(function(err, conn){
+        var exec0 = conn.query("select * from reviews where id = ?",[uid], function(err, review){
+            console.log(review);
+            if(review.userId == uid){
+                var exec1 = conn.query("delete from reviews where id = ?", [rid], function(err, deleted){
+                    console.log(deleted);
+                    var exec2 = conn.query("delete from comments where reviewId = ?", [rid], function(err, deleted2){
+                        console.log(deleted2);
+                        conn.release();
+                        res.send('review delete done');
+                    });
+                });
+            }else {
+                conn.release();
+                res.send('review delete fail');
+            }
+        });
+    });
+});
+
+//리뷰에 달린 답글 삭제
+router.route('deleteComment').post(function(req, res){
+    comid = req.body.commentId;
+    uid = req.user[0].id;
+
+    pool.getConnection(function(err, conn){
+        var exec0 = conn.query("select * from comments where id = ?", [comid], function(err, comment){
+            console.log(comment);
+            if(uid == comment.userId){
+                var exec1 = conn.query("delete from comments where id =?", [comid], function(err, deleted){
+                    console.log(deleted);
+                    conn.release();
+                    res.send('comment delete done');
+                });
+            }else {
+                conn.release();
+                res.send('comment delete fail');
+            }        
+        });
+    });
+});
+
+
+
 //올린상품조회
 router.route('/lookupAddedProductList').get(function (req, res) {
 
