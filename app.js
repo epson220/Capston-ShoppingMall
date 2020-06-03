@@ -1306,7 +1306,55 @@ router.route('deleteComment').post(function(req, res){
     });
 });
 
+//리뷰 수정 
+router.route('updateReview').post(function(req, res){
+    var content = req.body.comment;
+    var uid = req.user[0].id;
+    var rid = req.body.reviewId;
+    var id;
 
+    pool.getConnection(function(err, conn){
+        var exec0 = conn.query("select * from reviews where id = ?", [rid], function(err, review){
+            console.dir(review);
+            id = review.userId;
+            if(id == uid){
+                var exec1 = conn.query("update reviews set content = ? where id = ?", [content, rid], function(err, updated){
+                    console.dir(updated);
+                    conn.release();
+                    res.send('review update success');
+                });   
+            }else{
+                conn.release();
+                res.send('review update fail');
+            }
+        });    
+    });
+});
+
+//답글수정 
+router.route('updateComment').post(function(req, res){
+    var content = req.body.comment;
+    var uid = req.user[0].id;
+    var comid = req.body.commentId;
+    var id;
+
+    pool.getConnection(function(err, conn){
+        var exec0 = conn.query("select * from comments where id = ?", [comid], function(err, comment){
+            console.dir(comment);
+            id = comment.userId;
+            if(id == uid){
+                var exec1 = conn.query("update comments set content = ? where id = ?", [content, comid], function(err, updated){
+                    console.dir(updated);
+                    conn.release();
+                    res.send('update comment complete');
+                });
+            }else {
+                conn.release();
+                res.send('update comment fail');
+            }
+        });
+    });
+});
 
 //올린상품조회
 router.route('/lookupAddedProductList').get(function (req, res) {
