@@ -166,6 +166,11 @@ router.route('/signup').post(passport.authenticate('local-signup ', {
     failureFlash: true
 }));
 
+router.route('/email').get(function(req, res){
+    console.log('email.ejs렌더링');
+    res.render('email.ejs');
+});
+
 //로그인 인증 처리
 /*
 router.route('/login').post(function (req, res) {
@@ -1417,21 +1422,21 @@ router.route('/deleteProduct').post(function (req, res) {
     var pid = req.body.productId;
 
     pool.getConnection(function (err, conn) {
-        var exec = conn.query("delete from productInfo where productId=?", [pid], function (err, deleted) {
+        var exec = conn.query("update productInfo set deletedAt = NOW() where productId=?", [pid], function (err, deleted) {
             if (deleted) {
                 console.log(deleted);
             }
-            var exec1 = conn.query("delete from products where id=?", [pid], function (err, deleted2) {
+            var exec1 = conn.query("update products set deletedAt = NOW() where id=?", [pid], function (err, deleted2) {
                 if (deleted2) {
                     console.log(deleted2);
                 }
-                var exec2 = conn.query("delete from imgByColors where productId=?", [pid], function (err, deleted3) {
-                    if (deleted3) {
-                        console.log(deleted3);
-                        conn.release();
-                        res.send('delete success');
-                    }
-                });
+                // var exec2 = conn.query("delete from imgByColors where productId=?", [pid], function (err, deleted3) {
+                //     if (deleted3) {
+                //         console.log(deleted3);
+                //         conn.release();
+                //         res.send('delete success');
+                //     }
+                res.send('delete product success');
             });
         });
     });
@@ -1682,7 +1687,6 @@ router.route('/orderList').get(function (req, res) {
     pool.getConnection(function (err, conn) {
 
     });
-
 
 });
 

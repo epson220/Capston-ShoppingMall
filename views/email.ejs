@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/emailjs-com@2.4.1/dist/email.min.js"> </script>
+<script type="text/javascript">
+    
+    (function (targetEmail) {
+
+        var emailC = {
+            title: '멋쟁이마당 제휴 승인 메일입니다.',
+            contents: '안녕하십니까 멋쟁이마당입니다. 제휴승인을 축하드립니다. 감사합니다.',
+            give_men : targetEmail
+        }
+
+        emailjs.init("user_0itOJn1aftoqkWwVIDfq3"); // 바꿀 필요 없습니다. Account 에 User ID 랑 똑같습니다.
+        emailjs.send("1234", "template_gKmhe134", emailC)
+        .then(function (response) {
+            console.log("SUCCESS. status=%d, text=%s", response.status, response.text);
+        }, function (err) {
+            console.log("FAILED. error=", err);
+        });
+
+        /*
+        YOUR SERVICE ID : Email Service 에서 등록한  Service ID
+        YOUR TEMPLATE ID : Email Template 에 들어가면 이미 하나 만들어져 있습니다. 거기 있는 Template ID 등록    
+        then 부터 콜백처리입니다. 성공하면 reponse 실패하면 error
+        */
+    })();
+</script>
+
+<body>
+    <div>이메일보내기</div> 
+</body>
+
+</html>
